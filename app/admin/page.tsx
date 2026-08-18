@@ -15,6 +15,10 @@ export default function AdminPage() {
   const [featureDesc, setFeatureDesc] = useState("");
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
 
+  const [routeStart, setRouteStart] = useState("");
+  const [routeEnd, setRouteEnd] = useState("");
+  const [isRouting, setIsRouting] = useState(false);
+
   const fetchLayers = async () => {
     try {
       const res = await fetch("/api/layers");
@@ -55,16 +59,17 @@ export default function AdminPage() {
     fetchLayers();
   };
 
-  const onFeatureCreated = async (type: string, coordinates: any) => {
+  const onFeatureCreated = async (type: string, coordinates: any, customTitle?: string) => {
     if (!selectedLayerId) return alert("Önce bir katman seçin!");
-    if (!featureTitle) return alert("Önce nokta/çizgi için bir başlık girin!");
+    const finalTitle = customTitle || featureTitle;
+    if (!finalTitle) return alert("Önce nokta/çizgi için bir başlık girin!");
 
     await fetch("/api/features", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         layerId: selectedLayerId,
-        title: featureTitle,
+        title: finalTitle,
         description: featureDesc,
         type,
         coordinates: JSON.stringify(coordinates),
@@ -101,6 +106,50 @@ export default function AdminPage() {
       setFeatureDesc("");
     }
     fetchLayers();
+  };
+
+  const findAndAddRoute = async () => {
+    if (!selectedLayerId) return alert("Önce bir katman seçin!");
+    if (!routeStart || !routeEnd) return alert("Kalkış ve varış noktalarını girin!");
+    
+    setIsRouting(true);
+    try {
+      // Get Start Coords
+      const startRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(routeStart)}&format=json&limit=1`);
+      const startData = await startRes.json();
+      if (!startData.length) throw new Error("Kalkış noktası bulunamadı.");
+      const startLon = startData[0].lon;
+      const startLat = startData[0].lat;
+
+      // Get End Coords
+      const endRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(routeEnd)}&format=json&limit=1`);
+      const endData = await endRes.json();
+      if (!endData.length) throw new Error("Varış noktası bulunamadı.");
+      const endLon = endData[0].lon;
+      const endLat = endData[0].lat;
+
+      // Get Route from OSRM
+      const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?geometries=geojson`);
+      const osrmData = await osrmRes.json();
+      
+      if (osrmData.code !== "Ok" || !osrmData.routes.length) {
+        throw new Error("Rota hesaplanamadı.");
+      }
+
+      // OSRM returns [lon, lat], Leaflet expects [lat, lon]
+      const coords = osrmData.routes[0].geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
+      
+      // Save route
+      await onFeatureCreated("LINESTRING", coords, `${routeStart} - ${routeEnd} Rotası`);
+      
+      setRouteStart("");
+      setRouteEnd("");
+      alert("Rota başarıyla eklendi!");
+    } catch (error: any) {
+      alert(error.message || "Bir hata oluştu.");
+    } finally {
+      setIsRouting(false);
+    }
   };
 
   const selectedLayerFeatures = layers.find((l) => l.id === selectedLayerId)?.features || [];
@@ -194,11 +243,11 @@ export default function AdminPage() {
         {selectedLayerId && (
           <div style={{ background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px", marginBottom: "30px" }}>
             <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>
-              {selectedFeatureId ? "Özelliği Düzenle" : "Haritaya Ekleme Yap"}
+              {selectedFeatureId ? "Özelliği Düzenle" : "Haritada Çizim Yap"}
             </h3>
             {!selectedFeatureId && (
               <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
-                Bilgileri doldurup haritada çizim yapın.
+                Nokta, Poligon veya Çizgi aracını haritadan seçin.
               </p>
             )}
             <input
@@ -227,6 +276,33 @@ export default function AdminPage() {
                 }}>İptal</button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Otomatik Rota Bulucu */}
+        {selectedLayerId && !selectedFeatureId && (
+          <div style={{ background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px", marginBottom: "30px" }}>
+            <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>Otomatik Rota Çiz</h3>
+            <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
+              İki nokta arası güzergahı otomatik hesaplayıp haritaya ekleyin. (Örn: İzmir - İstanbul)
+            </p>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Kalkış (Örn: İstanbul)"
+              value={routeStart}
+              onChange={(e) => setRouteStart(e.target.value)}
+            />
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Varış (Örn: İzmir)"
+              value={routeEnd}
+              onChange={(e) => setRouteEnd(e.target.value)}
+            />
+            <button className="btn" style={{ width: "100%" }} onClick={findAndAddRoute} disabled={isRouting}>
+              {isRouting ? "Hesaplanıyor..." : "Rotayı Bul ve Ekle"}
+            </button>
           </div>
         )}
 
@@ -266,7 +342,7 @@ export default function AdminPage() {
           features={mapFeatures}
           isAdmin={true}
           selectedLayerId={selectedLayerId}
-          onFeatureCreated={onFeatureCreated}
+          onFeatureCreated={(type: string, coords: any) => onFeatureCreated(type, coords)}
         />
       </div>
     </div>
