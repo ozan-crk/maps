@@ -19,8 +19,9 @@ export default function AdminPage() {
   const [routeEnd, setRouteEnd] = useState("");
   const [isRouting, setIsRouting] = useState(false);
 
-  const [uploadedIcons, setUploadedIcons] = useState<string[]>([]);
+  const [uploadedIcons, setUploadedIcons] = useState<{name: string, url: string}[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [newIconName, setNewIconName] = useState("");
 
   const fetchLayers = async () => {
     try {
@@ -54,12 +55,19 @@ export default function AdminPage() {
   }, []);
 
   const uploadIcon = async (e: any) => {
+    if (!newIconName.trim()) {
+      alert("Lütfen önce ikon için bir isim belirleyin.");
+      e.target.value = "";
+      return;
+    }
+    
     const file = e.target.files[0];
     if (!file) return;
     
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("name", newIconName);
     
     try {
       const res = await fetch("/api/icons", {
@@ -68,6 +76,7 @@ export default function AdminPage() {
       });
       if (!res.ok) throw new Error("Failed to upload");
       await fetchIcons();
+      setNewIconName("");
       alert("İkon başarıyla yüklendi!");
     } catch (error: any) {
       alert("İkon yüklenemedi: " + error.message);
@@ -222,8 +231,8 @@ export default function AdminPage() {
             <option value="">Varsayılan İkon</option>
             {uploadedIcons.length > 0 && (
               <optgroup label="Yüklenen İkonlar">
-                {uploadedIcons.map((url, idx) => (
-                  <option key={idx} value={url}>Yüklenen İkon {idx + 1}</option>
+                {uploadedIcons.map((icon, idx) => (
+                  <option key={idx} value={icon.url}>{icon.name}</option>
                 ))}
               </optgroup>
             )}
@@ -259,8 +268,15 @@ export default function AdminPage() {
         <div style={{ marginBottom: "30px", background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px" }}>
           <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>İkon Yönetimi</h3>
           <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "10px" }}>
-            Katmanlarda kullanmak üzere kendi PNG ikonlarınızı yükleyebilirsiniz.
+            Katmanlarda kullanmak üzere ikon yükleyin. Önce ismini girip sonra dosyayı seçin.
           </p>
+          <input
+            type="text"
+            className="input-field"
+            placeholder="İkon İsmi (Örn: Karakol)"
+            value={newIconName}
+            onChange={(e) => setNewIconName(e.target.value)}
+          />
           <input 
             type="file" 
             accept="image/png, image/jpeg, image/svg+xml" 
@@ -272,9 +288,10 @@ export default function AdminPage() {
           
           {uploadedIcons.length > 0 && (
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
-              {uploadedIcons.map((url, idx) => (
-                <div key={idx} style={{ background: "rgba(255,255,255,0.1)", padding: "5px", borderRadius: "5px" }}>
-                  <img src={url} alt={`icon-${idx}`} style={{ width: "32px", height: "32px", objectFit: "contain" }} title={`Yüklenen İkon ${idx + 1}`} />
+              {uploadedIcons.map((icon, idx) => (
+                <div key={idx} style={{ background: "rgba(255,255,255,0.1)", padding: "5px", borderRadius: "5px", textAlign: "center", width: "60px" }}>
+                  <img src={icon.url} alt={icon.name} style={{ width: "32px", height: "32px", objectFit: "contain", margin: "0 auto" }} />
+                  <div style={{ fontSize: "10px", marginTop: "5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{icon.name}</div>
                 </div>
               ))}
             </div>
