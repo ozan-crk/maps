@@ -34,7 +34,7 @@ model Feature {
   layerId     String
   layer       Layer    @relation(fields: [layerId], references: [id], onDelete: Cascade)
   title       String
-  description String?
+  description String?  @db.Text
   iconUrl     String?
   type        String   // "POINT", "POLYGON", "LINESTRING" vs.
   coordinates String   @db.LongText // JSON string olarak koordinatlar: "[lng, lat]" veya "[[[lng,lat], ...]]"
