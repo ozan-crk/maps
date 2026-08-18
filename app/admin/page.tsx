@@ -24,6 +24,9 @@ export default function AdminPage() {
   const [routeEnd, setRouteEnd] = useState("");
   const [isRouting, setIsRouting] = useState(false);
 
+  const [pointAddress, setPointAddress] = useState("");
+  const [isSearchingPoint, setIsSearchingPoint] = useState(false);
+
   const [uploadedIcons, setUploadedIcons] = useState<{name: string, url: string}[]>([]);
   const [uploading, setUploading] = useState(false);
   const [newIconName, setNewIconName] = useState("");
@@ -246,6 +249,29 @@ export default function AdminPage() {
       alert(error.message || "Bir hata oluştu.");
     } finally {
       setIsRouting(false);
+    }
+  };
+
+  const findAndAddPoint = async () => {
+    if (!selectedLayerId) return alert("Önce bir katman seçin!");
+    if (!pointAddress) return alert("Adres girin!");
+    
+    setIsSearchingPoint(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pointAddress)}&format=json&limit=1`);
+      const data = await res.json();
+      if (!data.length) throw new Error("Adres bulunamadı.");
+      const lon = parseFloat(data[0].lon);
+      const lat = parseFloat(data[0].lat);
+      
+      await onFeatureCreated("POINT", [lat, lon], pointAddress);
+      
+      setPointAddress("");
+      alert("Nokta başarıyla eklendi!");
+    } catch (error: any) {
+      alert(error.message || "Bir hata oluştu.");
+    } finally {
+      setIsSearchingPoint(false);
     }
   };
 
@@ -496,6 +522,26 @@ export default function AdminPage() {
             />
             <button className="btn" style={{ width: "100%" }} onClick={findAndAddRoute} disabled={isRouting}>
               {isRouting ? "Hesaplanıyor..." : "Rotayı Bul ve Ekle"}
+            </button>
+          </div>
+        )}
+
+        {/* Otomatik Nokta Bulucu */}
+        {selectedLayerId && !selectedFeatureId && (
+          <div style={{ background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px", marginBottom: "30px" }}>
+            <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>Adres ile Nokta Ekle</h3>
+            <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
+              Adres veya mekan aratarak haritaya otomatik nokta ekleyin.
+            </p>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Aranacak Adres (Örn: Ankara Kalesi)"
+              value={pointAddress}
+              onChange={(e) => setPointAddress(e.target.value)}
+            />
+            <button className="btn" style={{ width: "100%" }} onClick={findAndAddPoint} disabled={isSearchingPoint}>
+              {isSearchingPoint ? "Aranıyor..." : "Noktayı Bul ve Ekle"}
             </button>
           </div>
         )}
