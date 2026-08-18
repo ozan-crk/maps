@@ -26,6 +26,7 @@ export default function AdminPage() {
 
   const [pointAddress, setPointAddress] = useState("");
   const [isSearchingPoint, setIsSearchingPoint] = useState(false);
+  const [addressResults, setAddressResults] = useState<any[]>([]);
 
   const [uploadedIcons, setUploadedIcons] = useState<{name: string, url: string}[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -252,26 +253,35 @@ export default function AdminPage() {
     }
   };
 
-  const findAndAddPoint = async () => {
+  const searchAddressForPoint = async () => {
     if (!selectedLayerId) return alert("Önce bir katman seçin!");
     if (!pointAddress) return alert("Adres girin!");
     
     setIsSearchingPoint(true);
+    setAddressResults([]);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pointAddress)}&format=json&limit=1`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pointAddress)}&format=json&limit=5`);
       const data = await res.json();
       if (!data.length) throw new Error("Adres bulunamadı.");
-      const lon = parseFloat(data[0].lon);
-      const lat = parseFloat(data[0].lat);
-      
-      await onFeatureCreated("POINT", [lat, lon], pointAddress);
-      
-      setPointAddress("");
-      alert("Nokta başarıyla eklendi!");
+      setAddressResults(data);
     } catch (error: any) {
       alert(error.message || "Bir hata oluştu.");
     } finally {
       setIsSearchingPoint(false);
+    }
+  };
+
+  const addPointFromResult = async (result: any) => {
+    try {
+      const lon = parseFloat(result.lon);
+      const lat = parseFloat(result.lat);
+      await onFeatureCreated("POINT", [lat, lon], result.display_name.split(",")[0]);
+      
+      setPointAddress("");
+      setAddressResults([]);
+      alert("Nokta başarıyla eklendi!");
+    } catch (error: any) {
+      alert(error.message || "Bir hata oluştu.");
     }
   };
 
@@ -533,16 +543,42 @@ export default function AdminPage() {
             <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
               Adres veya mekan aratarak haritaya otomatik nokta ekleyin.
             </p>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Aranacak Adres (Örn: Ankara Kalesi)"
-              value={pointAddress}
-              onChange={(e) => setPointAddress(e.target.value)}
-            />
-            <button className="btn" style={{ width: "100%" }} onClick={findAndAddPoint} disabled={isSearchingPoint}>
-              {isSearchingPoint ? "Aranıyor..." : "Noktayı Bul ve Ekle"}
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="text"
+                className="input-field"
+                style={{ marginBottom: 0 }}
+                placeholder="Aranacak Adres (Örn: Ankara Kalesi)"
+                value={pointAddress}
+                onChange={(e) => setPointAddress(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && searchAddressForPoint()}
+              />
+              <button className="btn" style={{ whiteSpace: "nowrap" }} onClick={searchAddressForPoint} disabled={isSearchingPoint}>
+                {isSearchingPoint ? "..." : "Ara"}
+              </button>
+            </div>
+            
+            {addressResults.length > 0 && (
+              <div style={{ marginTop: "10px", background: "rgba(0,0,0,0.2)", borderRadius: "8px", maxHeight: "200px", overflowY: "auto" }}>
+                {addressResults.map((res: any, idx: number) => (
+                  <div
+                    key={idx}
+                    onClick={() => addPointFromResult(res)}
+                    style={{
+                      padding: "8px 10px",
+                      fontSize: "12px",
+                      borderBottom: idx !== addressResults.length - 1 ? "1px solid rgba(255,255,255,0.1)" : "none",
+                      cursor: "pointer",
+                      transition: "background 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    {res.display_name}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
