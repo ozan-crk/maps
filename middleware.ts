@@ -10,8 +10,10 @@ export function middleware(req: NextRequest) {
       const authValue = basicAuth.split(' ')[1]
       const [user, pwd] = atob(authValue).split(':')
 
-      // Şimdilik admin/admin şifresi kullanıyoruz. 
-      if (user === 'admin' && pwd === 'admin') {
+      const expectedUser = process.env.ADMIN_USER || 'admin'
+      const expectedPwd = process.env.ADMIN_PASSWORD || 'admin'
+
+      if (user === expectedUser && pwd === expectedPwd) {
         return NextResponse.next()
       }
     }

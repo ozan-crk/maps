@@ -8,7 +8,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=mysql://user:userpassword@db:3306/harita
+      - DATABASE_URL=mysql://${DB_USER:-user}:${DB_PASSWORD:-userpassword}@db:3306/${DB_NAME:-harita}
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
     depends_on:
       - db
     volumes:
@@ -20,10 +22,10 @@ services:
     container_name: harita_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: harita
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-harita}
+      MYSQL_USER: ${DB_USER:-user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-userpassword}
     ports:
       - "3306:3306"
     volumes:
