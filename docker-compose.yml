@@ -11,6 +11,8 @@ services:
       - DATABASE_URL=mysql://user:userpassword@db:3306/harita
     depends_on:
       - db
+    volumes:
+      - uploads_data:/app/public/uploads
     command: node server.js
 
   db:
@@ -29,3 +31,4 @@ services:
 
 volumes:
   mysql_data:
+  uploads_data:

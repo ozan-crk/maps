@@ -277,7 +277,15 @@ export default function AdminPage() {
             ))}
           </select>
           {selectedMapId && (
-            <button className="btn btn-danger" style={{ width: "100%", marginTop: "10px", padding: "8px", fontSize: "12px" }} onClick={() => deleteMap(selectedMapId)}>
+            <div style={{ marginTop: "15px", marginBottom: "10px", padding: "10px", background: "rgba(59, 130, 246, 0.1)", borderRadius: "8px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+              <h4 style={{ fontSize: "12px", marginBottom: "5px", color: "var(--primary)" }}>Genel Erişim Linki</h4>
+              <a href={`/map/${selectedMapId}`} target="_blank" style={{ fontSize: "12px", color: "#f8fafc", wordBreak: "break-all", textDecoration: "none" }}>
+                {typeof window !== "undefined" ? window.location.origin : ""}/map/{selectedMapId}
+              </a>
+            </div>
+          )}
+          {selectedMapId && (
+            <button className="btn btn-danger" style={{ width: "100%", padding: "8px", fontSize: "12px" }} onClick={() => deleteMap(selectedMapId)}>
               Seçili Haritayı Sil
             </button>
           )}

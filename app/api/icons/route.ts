@@ -12,7 +12,7 @@ export async function GET() {
       .filter(f => f.endsWith(".png") || f.endsWith(".jpg") || f.endsWith(".svg"))
       .map(f => ({
         name: f.substring(0, f.lastIndexOf(".")),
-        url: `/uploads/icons/${f}`
+        url: `/api/uploads/icons/${f}`
       }));
     
     return NextResponse.json(icons);
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const filepath = path.join(iconsDir, filename);
     await writeFile(filepath, buffer);
     
-    return NextResponse.json({ url: `/uploads/icons/${filename}`, name: sanitizedName });
+    return NextResponse.json({ url: `/api/uploads/icons/${filename}`, name: sanitizedName });
   } catch (error) {
     console.error("POST /icons error:", error);
     return NextResponse.json({ error: "Failed to upload icon" }, { status: 500 });
