@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  MapProject: 'MapProject',
   Layer: 'Layer',
   Feature: 'Feature'
 } as const
@@ -71,8 +72,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const MapProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MapProjectScalarFieldEnum = (typeof MapProjectScalarFieldEnum)[keyof typeof MapProjectScalarFieldEnum]
+
+
 export const LayerScalarFieldEnum = {
   id: 'id',
+  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color',
@@ -89,6 +102,7 @@ export const FeatureScalarFieldEnum = {
   layerId: 'layerId',
   title: 'title',
   description: 'description',
+  iconUrl: 'iconUrl',
   type: 'type',
   coordinates: 'coordinates',
   createdAt: 'createdAt',
@@ -114,8 +128,18 @@ export const NullsOrder = {
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
+export const MapProjectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type MapProjectOrderByRelevanceFieldEnum = (typeof MapProjectOrderByRelevanceFieldEnum)[keyof typeof MapProjectOrderByRelevanceFieldEnum]
+
+
 export const LayerOrderByRelevanceFieldEnum = {
   id: 'id',
+  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color'
@@ -129,6 +153,7 @@ export const FeatureOrderByRelevanceFieldEnum = {
   layerId: 'layerId',
   title: 'title',
   description: 'description',
+  iconUrl: 'iconUrl',
   type: 'type',
   coordinates: 'coordinates'
 } as const

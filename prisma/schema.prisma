@@ -7,15 +7,26 @@ datasource db {
   provider = "mysql"
 }
 
+model MapProject {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  layers      Layer[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Layer {
-  id        String    @id @default(cuid())
+  id        String      @id @default(cuid())
+  mapId     String
+  map       MapProject @relation(fields: [mapId], references: [id], onDelete: Cascade)
   name      String
   iconUrl   String?
-  color     String?   // Poligonlar veya marker ikonları için renk
-  isActive  Boolean   @default(true)
+  color     String?     // Poligonlar veya marker ikonları için renk
+  isActive  Boolean     @default(true)
   features  Feature[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model Feature {

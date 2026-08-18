@@ -397,6 +397,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  MapProject: 'MapProject',
   Layer: 'Layer',
   Feature: 'Feature'
 } as const
@@ -414,10 +415,76 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "layer" | "feature"
+    modelProps: "mapProject" | "layer" | "feature"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    MapProject: {
+      payload: Prisma.$MapProjectPayload<ExtArgs>
+      fields: Prisma.MapProjectFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MapProjectFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MapProjectFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        findFirst: {
+          args: Prisma.MapProjectFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MapProjectFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        findMany: {
+          args: Prisma.MapProjectFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>[]
+        }
+        create: {
+          args: Prisma.MapProjectCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        createMany: {
+          args: Prisma.MapProjectCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.MapProjectDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        update: {
+          args: Prisma.MapProjectUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        deleteMany: {
+          args: Prisma.MapProjectDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MapProjectUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.MapProjectUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MapProjectPayload>
+        }
+        aggregate: {
+          args: Prisma.MapProjectAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMapProject>
+        }
+        groupBy: {
+          args: Prisma.MapProjectGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MapProjectGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MapProjectCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MapProjectCountAggregateOutputType> | number
+        }
+      }
+    }
     Layer: {
       payload: Prisma.$LayerPayload<ExtArgs>
       fields: Prisma.LayerFieldRefs
@@ -589,8 +656,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const MapProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MapProjectScalarFieldEnum = (typeof MapProjectScalarFieldEnum)[keyof typeof MapProjectScalarFieldEnum]
+
+
 export const LayerScalarFieldEnum = {
   id: 'id',
+  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color',
@@ -607,6 +686,7 @@ export const FeatureScalarFieldEnum = {
   layerId: 'layerId',
   title: 'title',
   description: 'description',
+  iconUrl: 'iconUrl',
   type: 'type',
   coordinates: 'coordinates',
   createdAt: 'createdAt',
@@ -632,8 +712,18 @@ export const NullsOrder = {
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
+export const MapProjectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type MapProjectOrderByRelevanceFieldEnum = (typeof MapProjectOrderByRelevanceFieldEnum)[keyof typeof MapProjectOrderByRelevanceFieldEnum]
+
+
 export const LayerOrderByRelevanceFieldEnum = {
   id: 'id',
+  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color'
@@ -647,6 +737,7 @@ export const FeatureOrderByRelevanceFieldEnum = {
   layerId: 'layerId',
   title: 'title',
   description: 'description',
+  iconUrl: 'iconUrl',
   type: 'type',
   coordinates: 'coordinates'
 } as const
@@ -668,16 +759,16 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'DateTime'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
 
 
 /**
- * Reference to a field of type 'DateTime'
+ * Reference to a field of type 'Boolean'
  */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -838,6 +929,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
  */
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
+  mapProject?: Prisma.MapProjectOmit
   layer?: Prisma.LayerOmit
   feature?: Prisma.FeatureOmit
 }

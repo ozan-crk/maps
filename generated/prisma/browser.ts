@@ -18,6 +18,11 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
+ * Model MapProject
+ * 
+ */
+export type MapProject = Prisma.MapProjectModel
+/**
  * Model Layer
  * 
  */

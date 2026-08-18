@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import DynamicMap from "@/components/DynamicMap";
 
 export default function AdminPage() {
+  const [maps, setMaps] = useState<any[]>([]);
+  const [selectedMapId, setSelectedMapId] = useState<string>("");
+  const [newMapName, setNewMapName] = useState("");
+  const [newMapDesc, setNewMapDesc] = useState("");
+
   const [layers, setLayers] = useState<any[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string>("");
   const [newLayerName, setNewLayerName] = useState("");
@@ -23,15 +28,36 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [newIconName, setNewIconName] = useState("");
 
-  const fetchLayers = async () => {
+  const fetchMaps = async () => {
     try {
-      const res = await fetch("/api/layers");
-      if (!res.ok) throw new Error("Failed to fetch");
+      const res = await fetch("/api/maps");
+      if (!res.ok) throw new Error("Failed to fetch maps");
+      const data = await res.json();
+      setMaps(data);
+      if (data.length > 0 && !selectedMapId) {
+        setSelectedMapId(data[0].id);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchLayers = async () => {
+    if (!selectedMapId) {
+      setLayers([]);
+      setSelectedLayerId("");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/layers?mapId=${selectedMapId}`);
+      if (!res.ok) throw new Error("Failed to fetch layers");
       const data = await res.json();
       if (!Array.isArray(data)) return;
       setLayers(data);
       if (data.length > 0 && !selectedLayerId) {
         setSelectedLayerId(data[0].id);
+      } else if (data.length === 0) {
+        setSelectedLayerId("");
       }
     } catch (error) {
       console.error(error);
@@ -50,9 +76,32 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchLayers();
+    fetchMaps();
     fetchIcons();
   }, []);
+
+  useEffect(() => {
+    fetchLayers();
+  }, [selectedMapId]);
+
+  const createMap = async () => {
+    if (!newMapName) return;
+    await fetch("/api/maps", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newMapName, description: newMapDesc }),
+    });
+    setNewMapName("");
+    setNewMapDesc("");
+    fetchMaps();
+  };
+
+  const deleteMap = async (id: string) => {
+    if (!confirm("Emin misiniz? Harita ve içindeki TÜM katmanlar/noktalar silinecek!")) return;
+    await fetch(`/api/maps/${id}`, { method: "DELETE" });
+    if (selectedMapId === id) setSelectedMapId("");
+    fetchMaps();
+  };
 
   const uploadIcon = async (e: any) => {
     if (!newIconName.trim()) {
@@ -87,12 +136,12 @@ export default function AdminPage() {
   };
 
   const createLayer = async () => {
-    if (!newLayerName) return;
+    if (!newLayerName || !selectedMapId) return;
     const finalIconUrl = newLayerIconType === "custom" ? newLayerIconUrl : newLayerIconType;
     await fetch("/api/layers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newLayerName, color: newLayerColor, iconUrl: finalIconUrl || null }),
+      body: JSON.stringify({ mapId: selectedMapId, name: newLayerName, color: newLayerColor, iconUrl: finalIconUrl || null }),
     });
     setNewLayerName("");
     setNewLayerIconType("");
@@ -211,6 +260,52 @@ export default function AdminPage() {
       {/* Sidebar */}
       <div className="glass-panel" style={{ width: "350px", height: "100%", padding: "20px", borderRadius: 0, overflowY: "auto", zIndex: 10 }}>
         <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>Admin Paneli</h1>
+
+        {/* Harita Yönetimi */}
+        <div style={{ marginBottom: "30px", background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px" }}>
+          <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>Harita Seçimi</h3>
+          <select 
+            className="input-field" 
+            value={selectedMapId} 
+            onChange={(e) => {
+              setSelectedMapId(e.target.value);
+            }}
+          >
+            <option value="">-- Harita Seçin --</option>
+            {maps.map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+          {selectedMapId && (
+            <button className="btn btn-danger" style={{ width: "100%", marginTop: "10px", padding: "8px", fontSize: "12px" }} onClick={() => deleteMap(selectedMapId)}>
+              Seçili Haritayı Sil
+            </button>
+          )}
+
+          <hr style={{ border: "1px solid rgba(255,255,255,0.1)", margin: "15px 0" }} />
+          
+          <h4 style={{ marginBottom: "10px", fontSize: "14px" }}>Yeni Harita Ekle</h4>
+          <input
+            type="text"
+            className="input-field"
+            placeholder="Harita Adı"
+            value={newMapName}
+            onChange={(e) => setNewMapName(e.target.value)}
+          />
+          <input
+            type="text"
+            className="input-field"
+            placeholder="Açıklama (Opsiyonel)"
+            value={newMapDesc}
+            onChange={(e) => setNewMapDesc(e.target.value)}
+          />
+          <button className="btn" style={{ width: "100%" }} onClick={createMap}>
+            Harita Oluştur
+          </button>
+        </div>
+
+        {selectedMapId ? (
+          <>
 
         {/* Yeni Katman Ekleme */}
         <div style={{ marginBottom: "30px", background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px" }}>
@@ -421,7 +516,13 @@ export default function AdminPage() {
              ))}
           </div>
         )}
-        
+        </>
+        ) : (
+          <div style={{ color: "#94a3b8", fontSize: "14px", textAlign: "center", padding: "20px" }}>
+            İşlem yapmak için lütfen yukarıdan bir harita seçin veya yeni bir tane oluşturun.
+          </div>
+        )}
+                
         <div style={{ marginTop: "20px" }}>
           <a href="/" style={{ color: "var(--primary)", textDecoration: "none", fontSize: "14px" }}>&larr; Genel Haritaya Dön</a>
         </div>

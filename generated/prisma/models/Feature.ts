@@ -29,6 +29,7 @@ export type FeatureMinAggregateOutputType = {
   layerId: string | null
   title: string | null
   description: string | null
+  iconUrl: string | null
   type: string | null
   coordinates: string | null
   createdAt: Date | null
@@ -40,6 +41,7 @@ export type FeatureMaxAggregateOutputType = {
   layerId: string | null
   title: string | null
   description: string | null
+  iconUrl: string | null
   type: string | null
   coordinates: string | null
   createdAt: Date | null
@@ -51,6 +53,7 @@ export type FeatureCountAggregateOutputType = {
   layerId: number
   title: number
   description: number
+  iconUrl: number
   type: number
   coordinates: number
   createdAt: number
@@ -64,6 +67,7 @@ export type FeatureMinAggregateInputType = {
   layerId?: true
   title?: true
   description?: true
+  iconUrl?: true
   type?: true
   coordinates?: true
   createdAt?: true
@@ -75,6 +79,7 @@ export type FeatureMaxAggregateInputType = {
   layerId?: true
   title?: true
   description?: true
+  iconUrl?: true
   type?: true
   coordinates?: true
   createdAt?: true
@@ -86,6 +91,7 @@ export type FeatureCountAggregateInputType = {
   layerId?: true
   title?: true
   description?: true
+  iconUrl?: true
   type?: true
   coordinates?: true
   createdAt?: true
@@ -170,6 +176,7 @@ export type FeatureGroupByOutputType = {
   layerId: string
   title: string
   description: string | null
+  iconUrl: string | null
   type: string
   coordinates: string
   createdAt: Date
@@ -202,6 +209,7 @@ export type FeatureWhereInput = {
   layerId?: Prisma.StringFilter<"Feature"> | string
   title?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
+  iconUrl?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
   coordinates?: Prisma.StringFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
@@ -214,6 +222,7 @@ export type FeatureOrderByWithRelationInput = {
   layerId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  iconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   coordinates?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -230,6 +239,7 @@ export type FeatureWhereUniqueInput = Prisma.AtLeast<{
   layerId?: Prisma.StringFilter<"Feature"> | string
   title?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
+  iconUrl?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
   coordinates?: Prisma.StringFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
@@ -242,6 +252,7 @@ export type FeatureOrderByWithAggregationInput = {
   layerId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  iconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   coordinates?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -259,6 +270,7 @@ export type FeatureScalarWhereWithAggregatesInput = {
   layerId?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   title?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
+  iconUrl?: Prisma.StringNullableWithAggregatesFilter<"Feature"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   coordinates?: Prisma.StringWithAggregatesFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Feature"> | Date | string
@@ -269,6 +281,7 @@ export type FeatureCreateInput = {
   id?: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -281,6 +294,7 @@ export type FeatureUncheckedCreateInput = {
   layerId: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -291,6 +305,7 @@ export type FeatureUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -303,6 +318,7 @@ export type FeatureUncheckedUpdateInput = {
   layerId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -314,6 +330,7 @@ export type FeatureCreateManyInput = {
   layerId: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -324,6 +341,7 @@ export type FeatureUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -335,6 +353,7 @@ export type FeatureUncheckedUpdateManyInput = {
   layerId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -362,6 +381,7 @@ export type FeatureCountOrderByAggregateInput = {
   layerId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  iconUrl?: Prisma.SortOrder
   type?: Prisma.SortOrder
   coordinates?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -373,6 +393,7 @@ export type FeatureMaxOrderByAggregateInput = {
   layerId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  iconUrl?: Prisma.SortOrder
   type?: Prisma.SortOrder
   coordinates?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -384,6 +405,7 @@ export type FeatureMinOrderByAggregateInput = {
   layerId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  iconUrl?: Prisma.SortOrder
   type?: Prisma.SortOrder
   coordinates?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -436,6 +458,7 @@ export type FeatureCreateWithoutLayerInput = {
   id?: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -446,6 +469,7 @@ export type FeatureUncheckedCreateWithoutLayerInput = {
   id?: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -486,6 +510,7 @@ export type FeatureScalarWhereInput = {
   layerId?: Prisma.StringFilter<"Feature"> | string
   title?: Prisma.StringFilter<"Feature"> | string
   description?: Prisma.StringNullableFilter<"Feature"> | string | null
+  iconUrl?: Prisma.StringNullableFilter<"Feature"> | string | null
   type?: Prisma.StringFilter<"Feature"> | string
   coordinates?: Prisma.StringFilter<"Feature"> | string
   createdAt?: Prisma.DateTimeFilter<"Feature"> | Date | string
@@ -496,6 +521,7 @@ export type FeatureCreateManyLayerInput = {
   id?: string
   title: string
   description?: string | null
+  iconUrl?: string | null
   type: string
   coordinates: string
   createdAt?: Date | string
@@ -506,6 +532,7 @@ export type FeatureUpdateWithoutLayerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -516,6 +543,7 @@ export type FeatureUncheckedUpdateWithoutLayerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -526,6 +554,7 @@ export type FeatureUncheckedUpdateManyWithoutLayerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   coordinates?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -539,6 +568,7 @@ export type FeatureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   layerId?: boolean
   title?: boolean
   description?: boolean
+  iconUrl?: boolean
   type?: boolean
   coordinates?: boolean
   createdAt?: boolean
@@ -553,13 +583,14 @@ export type FeatureSelectScalar = {
   layerId?: boolean
   title?: boolean
   description?: boolean
+  iconUrl?: boolean
   type?: boolean
   coordinates?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FeatureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "layerId" | "title" | "description" | "type" | "coordinates" | "createdAt" | "updatedAt", ExtArgs["result"]["feature"]>
+export type FeatureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "layerId" | "title" | "description" | "iconUrl" | "type" | "coordinates" | "createdAt" | "updatedAt", ExtArgs["result"]["feature"]>
 export type FeatureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   layer?: boolean | Prisma.LayerDefaultArgs<ExtArgs>
 }
@@ -574,6 +605,7 @@ export type $FeaturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     layerId: string
     title: string
     description: string | null
+    iconUrl: string | null
     type: string
     coordinates: string
     createdAt: Date
@@ -952,6 +984,7 @@ export interface FeatureFieldRefs {
   readonly layerId: Prisma.FieldRef<"Feature", 'String'>
   readonly title: Prisma.FieldRef<"Feature", 'String'>
   readonly description: Prisma.FieldRef<"Feature", 'String'>
+  readonly iconUrl: Prisma.FieldRef<"Feature", 'String'>
   readonly type: Prisma.FieldRef<"Feature", 'String'>
   readonly coordinates: Prisma.FieldRef<"Feature", 'String'>
   readonly createdAt: Prisma.FieldRef<"Feature", 'DateTime'>

@@ -8,6 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/MapProject'
 export type * from './models/Layer'
 export type * from './models/Feature'
 export type * from './commonInputTypes'
