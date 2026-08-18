@@ -53,8 +53,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/generated ./generated
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
+
+# Install prisma globally to run db push
+RUN npm install -g prisma
 
 USER nextjs
 
@@ -65,4 +66,4 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Wait for DB to be ready, then run db push and start server
-CMD ["sh", "-c", "node ./node_modules/prisma/build/index.js db push --skip-generate --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "prisma db push --skip-generate --accept-data-loss && node server.js"]
