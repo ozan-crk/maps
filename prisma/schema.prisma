@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Layer {
+  id        String    @id @default(cuid())
+  name      String
+  iconUrl   String?
+  color     String?   // Poligonlar veya marker ikonları için renk
+  isActive  Boolean   @default(true)
+  features  Feature[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Feature {
+  id          String   @id @default(cuid())
+  layerId     String
+  layer       Layer    @relation(fields: [layerId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  type        String   // "POINT", "POLYGON", "LINESTRING" vs.
+  coordinates String   // JSON string olarak koordinatlar: "[lng, lat]" veya "[[[lng,lat], ...]]"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
