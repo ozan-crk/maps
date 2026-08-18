@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, FeatureGroup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup } from "react-leaflet";
 import L from "leaflet";
 import { EditControl } from "react-leaflet-draw";
 
@@ -21,6 +21,7 @@ type FeatureType = {
   layerId: string;
   title: string;
   description: string | null;
+  iconUrl?: string | null;
   type: string;
   coordinates: string;
   layer?: {
@@ -46,6 +47,10 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
       const latlngs = layer.getLatLngs()[0]; // Outer ring
       const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
       if (onFeatureCreated) onFeatureCreated("POLYGON", coords);
+    } else if (layerType === "polyline") {
+      const latlngs = layer.getLatLngs();
+      const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
+      if (onFeatureCreated) onFeatureCreated("LINESTRING", coords);
     }
     // Remove the drawn layer from the map so it can be re-rendered via features prop
     layer.remove();
@@ -55,7 +60,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
     <MapContainer center={[39.92077, 32.85411]} zoom={6} style={{ height: "100%", width: "100%" }}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
 
       {isAdmin && selectedLayerId && (
@@ -67,7 +72,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
               rectangle: false,
               circle: false,
               circlemarker: false,
-              polyline: false,
+              polyline: true,
               polygon: true,
               marker: true,
             }}
@@ -83,9 +88,10 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
           return null;
         }
 
-        const customIcon = feature.layer?.iconUrl
+        const iconUrl = feature.iconUrl || feature.layer?.iconUrl;
+        const customIcon = iconUrl
           ? new L.Icon({
-              iconUrl: feature.layer.iconUrl,
+              iconUrl: iconUrl,
               iconSize: [32, 32],
               iconAnchor: [16, 32],
               popupAnchor: [0, -32],
@@ -111,6 +117,15 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
                 <p style={{ margin: 0, fontSize: "14px" }}>{feature.description}</p>
               </Popup>
             </Polygon>
+          );
+        } else if (feature.type === "LINESTRING") {
+          return (
+            <Polyline key={feature.id} positions={coords} pathOptions={{ color, weight: 5 }}>
+              <Popup>
+                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold" }}>{feature.title}</h3>
+                <p style={{ margin: 0, fontSize: "14px" }}>{feature.description}</p>
+              </Popup>
+            </Polyline>
           );
         }
 

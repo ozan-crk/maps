@@ -11,6 +11,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         title: data.title,
         description: data.description,
         coordinates: data.coordinates,
+        iconUrl: data.iconUrl !== undefined ? data.iconUrl : undefined,
       },
     });
     return NextResponse.json(feature);

@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         layerId: data.layerId,
         title: data.title,
         description: data.description,
+        iconUrl: data.iconUrl || null,
         type: data.type,
         coordinates: data.coordinates,
       },

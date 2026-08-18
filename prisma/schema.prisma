@@ -24,6 +24,7 @@ model Feature {
   layer       Layer    @relation(fields: [layerId], references: [id], onDelete: Cascade)
   title       String
   description String?
+  iconUrl     String?
   type        String   // "POINT", "POLYGON", "LINESTRING" vs.
   coordinates String   // JSON string olarak koordinatlar: "[lng, lat]" veya "[[[lng,lat], ...]]"
   createdAt   DateTime @default(now())

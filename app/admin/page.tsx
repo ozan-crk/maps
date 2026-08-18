@@ -11,6 +11,8 @@ export default function AdminPage() {
 
   const [featureTitle, setFeatureTitle] = useState("");
   const [featureDesc, setFeatureDesc] = useState("");
+  const [featureIconUrl, setFeatureIconUrl] = useState("");
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
 
   const fetchLayers = async () => {
     try {
@@ -51,7 +53,7 @@ export default function AdminPage() {
 
   const onFeatureCreated = async (type: string, coordinates: any) => {
     if (!selectedLayerId) return alert("Önce bir katman seçin!");
-    if (!featureTitle) return alert("Önce nokta/poligon için bir başlık girin!");
+    if (!featureTitle) return alert("Önce nokta/çizgi için bir başlık girin!");
 
     await fetch("/api/features", {
       method: "POST",
@@ -60,6 +62,7 @@ export default function AdminPage() {
         layerId: selectedLayerId,
         title: featureTitle,
         description: featureDesc,
+        iconUrl: featureIconUrl,
         type,
         coordinates: JSON.stringify(coordinates),
       }),
@@ -67,7 +70,38 @@ export default function AdminPage() {
     
     setFeatureTitle("");
     setFeatureDesc("");
-    fetchLayers(); // Refresh features on map
+    setFeatureIconUrl("");
+    fetchLayers();
+  };
+
+  const updateFeature = async () => {
+    if (!selectedFeatureId) return;
+    await fetch(`/api/features/${selectedFeatureId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: featureTitle,
+        description: featureDesc,
+        iconUrl: featureIconUrl,
+      }),
+    });
+    setSelectedFeatureId(null);
+    setFeatureTitle("");
+    setFeatureDesc("");
+    setFeatureIconUrl("");
+    fetchLayers();
+  };
+
+  const deleteFeature = async (id: string) => {
+    if (!confirm("Emin misiniz? Bu özellik silinecek.")) return;
+    await fetch(`/api/features/${id}`, { method: "DELETE" });
+    if (selectedFeatureId === id) {
+      setSelectedFeatureId(null);
+      setFeatureTitle("");
+      setFeatureDesc("");
+      setFeatureIconUrl("");
+    }
+    fetchLayers();
   };
 
   const selectedLayerFeatures = layers.find((l) => l.id === selectedLayerId)?.features || [];
@@ -129,13 +163,17 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Yeni Nokta/Poligon Ekleme Ayarları */}
+        {/* Yeni Nokta/Poligon Ekleme veya Düzenleme Ayarları */}
         {selectedLayerId && (
-          <div style={{ background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px" }}>
-            <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>Haritaya Ekleme Yap</h3>
-            <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
-              Aşağıdaki bilgileri doldurduktan sonra harita üzerindeki çizim araçlarını kullanarak ekleme yapın.
-            </p>
+          <div style={{ background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px", marginBottom: "30px" }}>
+            <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>
+              {selectedFeatureId ? "Özelliği Düzenle" : "Haritaya Ekleme Yap"}
+            </h3>
+            {!selectedFeatureId && (
+              <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "15px" }}>
+                Bilgileri doldurup haritada çizim yapın.
+              </p>
+            )}
             <input
               type="text"
               className="input-field"
@@ -151,6 +189,51 @@ export default function AdminPage() {
               onChange={(e) => setFeatureDesc(e.target.value)}
               style={{ resize: "none" }}
             />
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Özel İkon URL (İsteğe bağlı)"
+              value={featureIconUrl}
+              onChange={(e) => setFeatureIconUrl(e.target.value)}
+            />
+            
+            {selectedFeatureId && (
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button className="btn" style={{ flex: 1 }} onClick={updateFeature}>Güncelle</button>
+                <button className="btn btn-danger" style={{ flex: 1 }} onClick={() => {
+                  setSelectedFeatureId(null);
+                  setFeatureTitle("");
+                  setFeatureDesc("");
+                  setFeatureIconUrl("");
+                }}>İptal</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Seçili Katmanın Özellikleri */}
+        {selectedLayerId && selectedLayerFeatures.length > 0 && (
+          <div style={{ marginBottom: "30px" }}>
+             <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>Eklenen Öğeler</h3>
+             {selectedLayerFeatures.map((f: any) => (
+                <div key={f.id} style={{
+                  background: "rgba(255,255,255,0.05)",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  marginBottom: "8px",
+                }}>
+                  <div style={{ fontWeight: "bold", fontSize: "14px", marginBottom: "5px" }}>{f.title} ({f.type})</div>
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <button className="btn" style={{ padding: "4px 8px", fontSize: "12px", flex: 1 }} onClick={() => {
+                      setSelectedFeatureId(f.id);
+                      setFeatureTitle(f.title);
+                      setFeatureDesc(f.description || "");
+                      setFeatureIconUrl(f.iconUrl || "");
+                    }}>Düzenle</button>
+                    <button className="btn btn-danger" style={{ padding: "4px 8px", fontSize: "12px", flex: 1 }} onClick={() => deleteFeature(f.id)}>Sil</button>
+                  </div>
+                </div>
+             ))}
           </div>
         )}
         
