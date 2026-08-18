@@ -8,10 +8,11 @@ export default function AdminPage() {
   const [selectedLayerId, setSelectedLayerId] = useState<string>("");
   const [newLayerName, setNewLayerName] = useState("");
   const [newLayerColor, setNewLayerColor] = useState("#3b82f6");
+  const [newLayerIconType, setNewLayerIconType] = useState(""); // predefined or custom
+  const [newLayerIconUrl, setNewLayerIconUrl] = useState("");
 
   const [featureTitle, setFeatureTitle] = useState("");
   const [featureDesc, setFeatureDesc] = useState("");
-  const [featureIconUrl, setFeatureIconUrl] = useState("");
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
 
   const fetchLayers = async () => {
@@ -35,12 +36,15 @@ export default function AdminPage() {
 
   const createLayer = async () => {
     if (!newLayerName) return;
+    const finalIconUrl = newLayerIconType === "custom" ? newLayerIconUrl : newLayerIconType;
     await fetch("/api/layers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newLayerName, color: newLayerColor }),
+      body: JSON.stringify({ name: newLayerName, color: newLayerColor, iconUrl: finalIconUrl || null }),
     });
     setNewLayerName("");
+    setNewLayerIconType("");
+    setNewLayerIconUrl("");
     fetchLayers();
   };
 
@@ -62,7 +66,6 @@ export default function AdminPage() {
         layerId: selectedLayerId,
         title: featureTitle,
         description: featureDesc,
-        iconUrl: featureIconUrl,
         type,
         coordinates: JSON.stringify(coordinates),
       }),
@@ -70,7 +73,6 @@ export default function AdminPage() {
     
     setFeatureTitle("");
     setFeatureDesc("");
-    setFeatureIconUrl("");
     fetchLayers();
   };
 
@@ -82,13 +84,11 @@ export default function AdminPage() {
       body: JSON.stringify({
         title: featureTitle,
         description: featureDesc,
-        iconUrl: featureIconUrl,
       }),
     });
     setSelectedFeatureId(null);
     setFeatureTitle("");
     setFeatureDesc("");
-    setFeatureIconUrl("");
     fetchLayers();
   };
 
@@ -99,7 +99,6 @@ export default function AdminPage() {
       setSelectedFeatureId(null);
       setFeatureTitle("");
       setFeatureDesc("");
-      setFeatureIconUrl("");
     }
     fetchLayers();
   };
@@ -126,6 +125,30 @@ export default function AdminPage() {
             value={newLayerName}
             onChange={(e) => setNewLayerName(e.target.value)}
           />
+          
+          <select 
+            className="input-field" 
+            value={newLayerIconType} 
+            onChange={(e) => setNewLayerIconType(e.target.value)}
+          >
+            <option value="">Varsayılan İkon</option>
+            <option value="https://cdn-icons-png.flaticon.com/512/3050/3050410.png">Fabrika</option>
+            <option value="https://cdn-icons-png.flaticon.com/512/33/33777.png">Hastane</option>
+            <option value="https://cdn-icons-png.flaticon.com/512/167/167707.png">Okul</option>
+            <option value="https://cdn-icons-png.flaticon.com/512/684/684908.png">Konum İşareti</option>
+            <option value="custom">Özel URL...</option>
+          </select>
+          
+          {newLayerIconType === "custom" && (
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Görsel URL'si (http://...)"
+              value={newLayerIconUrl}
+              onChange={(e) => setNewLayerIconUrl(e.target.value)}
+            />
+          )}
+
           <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
             <label>Renk:</label>
             <input type="color" value={newLayerColor} onChange={(e) => setNewLayerColor(e.target.value)} style={{ background: "none", border: "none", cursor: "pointer" }} />
@@ -155,7 +178,11 @@ export default function AdminPage() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{ width: "12px", height: "12px", backgroundColor: layer.color, borderRadius: "50%" }} />
+                {layer.iconUrl ? (
+                  <img src={layer.iconUrl} alt="icon" style={{ width: "16px", height: "16px", objectFit: "contain" }} />
+                ) : (
+                  <div style={{ width: "12px", height: "12px", backgroundColor: layer.color, borderRadius: "50%" }} />
+                )}
                 <span>{layer.name} ({layer.features.length})</span>
               </div>
               <button className="btn btn-danger" style={{ padding: "4px 8px", fontSize: "12px" }} onClick={(e) => { e.stopPropagation(); deleteLayer(layer.id); }}>Sil</button>
@@ -189,13 +216,6 @@ export default function AdminPage() {
               onChange={(e) => setFeatureDesc(e.target.value)}
               style={{ resize: "none" }}
             />
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Özel İkon URL (İsteğe bağlı)"
-              value={featureIconUrl}
-              onChange={(e) => setFeatureIconUrl(e.target.value)}
-            />
             
             {selectedFeatureId && (
               <div style={{ display: "flex", gap: "10px" }}>
@@ -204,7 +224,6 @@ export default function AdminPage() {
                   setSelectedFeatureId(null);
                   setFeatureTitle("");
                   setFeatureDesc("");
-                  setFeatureIconUrl("");
                 }}>İptal</button>
               </div>
             )}
@@ -228,7 +247,6 @@ export default function AdminPage() {
                       setSelectedFeatureId(f.id);
                       setFeatureTitle(f.title);
                       setFeatureDesc(f.description || "");
-                      setFeatureIconUrl(f.iconUrl || "");
                     }}>Düzenle</button>
                     <button className="btn btn-danger" style={{ padding: "4px 8px", fontSize: "12px", flex: 1 }} onClick={() => deleteFeature(f.id)}>Sil</button>
                   </div>
