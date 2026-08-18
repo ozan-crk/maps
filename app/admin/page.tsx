@@ -19,6 +19,9 @@ export default function AdminPage() {
   const [routeEnd, setRouteEnd] = useState("");
   const [isRouting, setIsRouting] = useState(false);
 
+  const [uploadedIcons, setUploadedIcons] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
   const fetchLayers = async () => {
     try {
       const res = await fetch("/api/layers");
@@ -34,9 +37,45 @@ export default function AdminPage() {
     }
   };
 
+  const fetchIcons = async () => {
+    try {
+      const res = await fetch("/api/icons");
+      if (!res.ok) throw new Error("Failed to fetch icons");
+      const data = await res.json();
+      setUploadedIcons(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchLayers();
+    fetchIcons();
   }, []);
+
+  const uploadIcon = async (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+      const res = await fetch("/api/icons", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed to upload");
+      await fetchIcons();
+      alert("İkon başarıyla yüklendi!");
+    } catch (error: any) {
+      alert("İkon yüklenemedi: " + error.message);
+    } finally {
+      setUploading(false);
+      e.target.value = ""; // Reset file input
+    }
+  };
 
   const createLayer = async () => {
     if (!newLayerName) return;
@@ -181,10 +220,19 @@ export default function AdminPage() {
             onChange={(e) => setNewLayerIconType(e.target.value)}
           >
             <option value="">Varsayılan İkon</option>
-            <option value="https://cdn-icons-png.flaticon.com/512/3050/3050410.png">Fabrika</option>
-            <option value="https://cdn-icons-png.flaticon.com/512/33/33777.png">Hastane</option>
-            <option value="https://cdn-icons-png.flaticon.com/512/167/167707.png">Okul</option>
-            <option value="https://cdn-icons-png.flaticon.com/512/684/684908.png">Konum İşareti</option>
+            {uploadedIcons.length > 0 && (
+              <optgroup label="Yüklenen İkonlar">
+                {uploadedIcons.map((url, idx) => (
+                  <option key={idx} value={url}>Yüklenen İkon {idx + 1}</option>
+                ))}
+              </optgroup>
+            )}
+            <optgroup label="Hazır İkonlar">
+              <option value="https://cdn-icons-png.flaticon.com/512/3050/3050410.png">Fabrika</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/33/33777.png">Hastane</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/167/167707.png">Okul</option>
+              <option value="https://cdn-icons-png.flaticon.com/512/684/684908.png">Konum İşareti</option>
+            </optgroup>
             <option value="custom">Özel URL...</option>
           </select>
           
@@ -205,6 +253,32 @@ export default function AdminPage() {
           <button className="btn" style={{ width: "100%" }} onClick={createLayer}>
             Katman Ekle
           </button>
+        </div>
+
+        {/* İkon Yönetimi */}
+        <div style={{ marginBottom: "30px", background: "rgba(255,255,255,0.05)", padding: "15px", borderRadius: "10px" }}>
+          <h3 style={{ marginBottom: "10px", fontSize: "16px" }}>İkon Yönetimi</h3>
+          <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "10px" }}>
+            Katmanlarda kullanmak üzere kendi PNG ikonlarınızı yükleyebilirsiniz.
+          </p>
+          <input 
+            type="file" 
+            accept="image/png, image/jpeg, image/svg+xml" 
+            style={{ marginBottom: "10px", fontSize: "12px", width: "100%" }}
+            onChange={uploadIcon}
+            disabled={uploading}
+          />
+          {uploading && <div style={{ fontSize: "12px", marginBottom: "10px", color: "var(--primary)" }}>Yükleniyor...</div>}
+          
+          {uploadedIcons.length > 0 && (
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
+              {uploadedIcons.map((url, idx) => (
+                <div key={idx} style={{ background: "rgba(255,255,255,0.1)", padding: "5px", borderRadius: "5px" }}>
+                  <img src={url} alt={`icon-${idx}`} style={{ width: "32px", height: "32px", objectFit: "contain" }} title={`Yüklenen İkon ${idx + 1}`} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Katman Listesi */}
