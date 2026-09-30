@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup, LayersControl } from "react-leaflet";
 import L from "leaflet";
 import { EditControl } from "react-leaflet-draw";
 
@@ -58,10 +58,31 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
 
   return (
     <MapContainer center={[39.92077, 32.85411]} zoom={6} style={{ height: "100%", width: "100%" }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="Standart Harita (OpenStreetMap)">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.BaseLayer name="Uydu Görünümü (Esri Satellite)">
+          <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={18}
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.BaseLayer name="Topografik (OpenTopoMap)">
+          <TileLayer
+            attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+            maxZoom={17}
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
 
       {isAdmin && selectedLayerId && (
         <FeatureGroup>
