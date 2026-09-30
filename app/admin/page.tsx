@@ -285,7 +285,9 @@ export default function AdminPage() {
     }
   };
 
-  const selectedLayerFeatures = layers.find((l) => l.id === selectedLayerId)?.features || [];
+  const selectedLayerFeatures = [...(layers.find((l) => l.id === selectedLayerId)?.features || [])].sort(
+    (a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+  );
   const mapFeatures = selectedLayerFeatures.map((f: any) => ({
     ...f,
     layer: layers.find((l) => l.id === selectedLayerId),

@@ -9,8 +9,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       include: {
         layers: {
           include: {
-            features: true
-          }
+            features: {
+              orderBy: { createdAt: "desc" },
+            },
+          },
         }
       }
     });

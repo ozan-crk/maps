@@ -11,7 +11,9 @@ export async function GET(req: Request) {
       where: mapId ? { mapId } : undefined,
       orderBy: { createdAt: "asc" },
       include: {
-        features: true,
+        features: {
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
     return NextResponse.json(layers);
