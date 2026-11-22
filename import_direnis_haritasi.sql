@@ -2,6 +2,7 @@
 -- Veritabanı: harita (MySQL / MariaDB)
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+ALTER TABLE MapProject MODIFY COLUMN description TEXT;
 
 -- 1. MapProject Ekle
 INSERT INTO MapProject (id, name, description, createdAt, updatedAt) VALUES ('direnis-haritasi', 'Umut-Sen Direniş Haritası', 'Türkiye genelindeki işçi direnişleri, ekoloji mücadeleleri, iş cinayeti davaları ve adalet nöbetleri haritası.', NOW(), NOW()) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), updatedAt=NOW();

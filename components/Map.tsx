@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup, LayersControl, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, CircleMarker, FeatureGroup, LayersControl, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { EditControl } from "react-leaflet-draw";
 
@@ -73,85 +73,143 @@ function getPolygonCenter(coords: any): [number, number] | null {
   }
 }
 
-// maps22 ile BİREBİR AYNI - FontAwesome İkon ve Kategori Belirleyici
+// Orijinal Ekoloji Enstitüsü & Umut-Sen & MEYDİP Renk ve İkon Motoru
 function getIconAndColor(feature: FeatureType): { iconClass: string; color: string; label: string } {
   const layerId = (feature.layerId || feature.layer?.id || "").toLowerCase();
   const layerName = (feature.layer?.name || "").toLowerCase();
-  const title = (feature.title || "").toLowerCase();
-  const desc = (feature.description || "").toLowerCase();
+  const title = (feature.title || "");
+  const desc = (feature.description || "");
+  const combined = (title + " " + desc).toUpperCase();
 
-  // 1. İşçi Direnişleri ve Grevler (Canlı Kırmızı + Yumruk)
-  if (layerId.includes("isci") || layerName.includes("işçi") || title.includes("grev") || title.includes("işçi") || desc.includes("grev")) {
-    return { iconClass: "fa-fist-raised", color: "#dc2626", label: "İşçi Direnişi / Grev" };
-  }
-  // 2. Ekoloji Mücadeleleri (Doğa Yeşili + Yaprak)
-  if (layerId.includes("ekoloji") || layerName.includes("ekoloji") || title.includes("maden") || title.includes("orman") || title.includes("jes") || desc.includes("ekoloji")) {
-    return { iconClass: "fa-leaf", color: "#16a34a", label: "Ekoloji Mücadelesi" };
-  }
-  // 3. İş Cinayeti Davaları (Koyu Grafit / Adalet Siyahı + Terazi)
-  if (layerId.includes("cinayet") || layerName.includes("cinayet") || title.includes("katliam") || title.includes("cinayeti") || desc.includes("iş cinayeti")) {
-    return { iconClass: "fa-scale-balanced", color: "#1e293b", label: "İş Cinayeti Davası" };
-  }
-  // 4. Hapishane Direnişleri (Canlı Turuncu + Kilit)
-  if (layerId.includes("hapishane") || layerName.includes("hapishane") || title.includes("açlık grevi") || title.includes("mahpus") || desc.includes("hapishane")) {
-    return { iconClass: "fa-lock", color: "#ea580c", label: "Hapishane Direnişi" };
-  }
-  // 5. Kayıp Yakınları / Adalet Nöbetleri (Asil Derin Mor + Kalp)
-  if (layerId.includes("kayip") || layerName.includes("kayıp") || title.includes("anneleri") || title.includes("adalet") || desc.includes("kayıp")) {
-    return { iconClass: "fa-heart", color: "#9333ea", label: "Kayıp Yakınları / Adalet" };
-  }
-
-  // 6. Organize Sanayi Bölgesi (Sanayi Mavisi + Fabrika)
-  if (layerId.includes("osb") || layerName.includes("organize") || layerName.includes("osb") || title.includes("osb")) {
-    return { iconClass: "fa-industry", color: "#2563eb", label: "Organize Sanayi Bölgesi" };
-  }
-  // 7. Teknokent (TGB - Neon Mor + Deney Tüpü)
-  if (layerId.includes("tgb") || layerName.includes("teknoloji") || layerName.includes("tgb") || title.includes("teknokent")) {
-    return { iconClass: "fa-flask", color: "#7c3aed", label: "Teknoloji Geliştirme Bölgesi" };
-  }
-  // 8. Endüstri Bölgesi (EB - Zümrüt Yeşili + Depo / Tesis)
-  if (layerId.includes("eb") || layerName.includes("endüstri") || layerName.includes("eb")) {
-    return { iconClass: "fa-warehouse", color: "#059669", label: "Endüstri Bölgesi" };
-  }
-  // 9. Ön Tahsis Alanı (Kehribar + Pusula / Plan)
-  if (layerId.includes("ontahsis") || layerName.includes("tahsis")) {
-    return { iconClass: "fa-drafting-compass", color: "#d97706", label: "Ön Tahsis Alanı" };
-  }
-  // 10. Yatırım Alanı (Açık Mavi + Çanta)
-  if (layerId.includes("yatirim") || layerName.includes("yatırım")) {
-    return { iconClass: "fa-briefcase", color: "#0284c7", label: "Yatırım Alanı" };
-  }
-
-  // 11. Ekstraktivizm: Maden İhale Alanları (MAPEG - Çekiç / Balyoz)
-  if (layerId.includes("ekst_ihaleler") || layerName.includes("ihale")) {
-    return { iconClass: "fa-hammer", color: "#dc2626", label: "Maden İhale Alanı (MAPEG)" };
-  }
-  // 12. Ekstraktivizm: ÇED Maden Projeleri
+  // ==========================================
+  // 1. ÇED MADEN PROJELERİ (Orijinal Ekoloji Enstitüsü Renk Paleti)
+  // ==========================================
   if (layerId.includes("ekst_ced") || layerName.includes("çed")) {
-    return { iconClass: "fa-flask", color: "#059669", label: "ÇED Maden Projesi" };
+    if (combined.includes("ÇED OLUMLU") && !combined.includes("GEREKLİ DEĞİL")) {
+      return { iconClass: "fa-circle-check", color: "#991b1b", label: "ÇED Olumlu (Nihai Onay)" };
+    }
+    if (combined.includes("ÇED GEREKLİ DEĞİL")) {
+      return { iconClass: "fa-circle-exclamation", color: "#dc2626", label: "ÇED Gerekli Değil / Olumlu" };
+    }
+    if (combined.includes("NİHAİ KARAR")) {
+      return { iconClass: "fa-gavel", color: "#f87171", label: "Bakanlık Nihai Karar Aşamasında" };
+    }
+    if (combined.includes("İDK")) {
+      return { iconClass: "fa-users-gear", color: "#ea580c", label: "İDK Komisyon İncelemesinde" };
+    }
+    if (combined.includes("HKT")) {
+      return { iconClass: "fa-bullhorn", color: "#fb923c", label: "Halkın Katılımı Toplantısı (HKT)" };
+    }
+    if (combined.includes("ÇED SÜRECİ BAŞLAYAN")) {
+      return { iconClass: "fa-hourglass-start", color: "#fdba74", label: "ÇED Süreci Başlayan" };
+    }
+    if (combined.includes("ÇED GEREKLİ") || combined.includes("RAPORU HAZIRLANMALIDIR")) {
+      return { iconClass: "fa-file-lines", color: "#eab308", label: "Tam ÇED Raporu Hazırlanmalı" };
+    }
+    if (combined.includes("İPTAL") || combined.includes("İADE")) {
+      return { iconClass: "fa-ban", color: "#4ade80", label: "ÇED Başvurusu İptal / İade Edildi" };
+    }
+    if (combined.includes("ÇED OLUMSUZ")) {
+      return { iconClass: "fa-circle-xmark", color: "#16a34a", label: "ÇED Olumsuz (Maden Durduruldu)" };
+    }
+    return { iconClass: "fa-flask", color: "#dc2626", label: "ÇED Maden Projesi" };
   }
-  // 13. Ekstraktivizm: Taşınmaz & Ruhsat Kararları (Sözleşme / Belge)
+
+  // ==========================================
+  // 2. MADEN İHALE ALANLARI (MAPEG - Satılan / Satılmayan)
+  // ==========================================
+  if (layerId.includes("ekst_ihaleler") || layerName.includes("ihale")) {
+    if (combined.includes("İŞLETME RUHSATI") || combined.includes("ARAMA RUHSATI") || combined.includes("SATIL")) {
+      return { iconClass: "fa-hammer", color: "#9333ea", label: "İhalede Satılan Maden Sahası" };
+    }
+    return { iconClass: "fa-hammer", color: "#e11d48", label: "Maden İhale Sahası" };
+  }
+
+  // ==========================================
+  // 3. TAŞINMAZ / KAMULAŞTIRMA / RUHSAT KARARLARI
+  // ==========================================
   if (layerId.includes("ekst_tasinmaz") || layerName.includes("taşınmaz")) {
-    return { iconClass: "fa-file-contract", color: "#2563eb", label: "Taşınmaz Kararı" };
+    if (combined.includes("İŞLETME RUHSATI")) {
+      return { iconClass: "fa-file-contract", color: "#2563eb", label: "İşletme Ruhsatı Talebi" };
+    }
+    if (combined.includes("ARAMA RUHSATI")) {
+      return { iconClass: "fa-file-signature", color: "#0284c7", label: "Arama Ruhsatı Talebi" };
+    }
+    if (combined.includes("İHALE")) {
+      return { iconClass: "fa-gavel", color: "#9333ea", label: "İhale Kararı" };
+    }
+    if (combined.includes("DEVİR")) {
+      return { iconClass: "fa-right-left", color: "#059669", label: "Ruhsat Devir Kararı" };
+    }
+    if (combined.includes("TEMDİT")) {
+      return { iconClass: "fa-clock-rotate-left", color: "#d97706", label: "Ruhsat Temdit (Uzatma)" };
+    }
+    return { iconClass: "fa-file-contract", color: "#337ab7", label: "Taşınmaz / Kamulaştırma Kararı" };
   }
-  // 14. Ekstraktivizm: Korunan Alanlar & Milli Parklar (DKMP - Ağaç)
-  if (layerId.includes("ekst_dkmp") || layerName.includes("koruma") || layerName.includes("milli park")) {
-    return { iconClass: "fa-tree", color: "#16a34a", label: "Milli Park & Koruma (DKMP)" };
+
+  // ==========================================
+  // 4. DOĞA KORUMA ALANLARI, SU HAVZALARI & TAŞ OCAKLARI
+  // ==========================================
+  if (layerId.includes("ekst_dkmp") || layerName.includes("milli park") || layerName.includes("koruma")) {
+    return { iconClass: "fa-tree", color: "#16a34a", label: "Milli Park & Doğa Koruma (DKMP)" };
   }
-  // 15. Ekstraktivizm: Su Havzaları (Su Damlası)
+  if (layerId.includes("ekst_kba") || layerName.includes("önemli doğa")) {
+    return { iconClass: "fa-leaf", color: "#10b981", label: "Önemli Doğa Alanı (KBA)" };
+  }
   if (layerId.includes("ekst_havzalar") || layerName.includes("havza")) {
     return { iconClass: "fa-water", color: "#0284c7", label: "Su Havzası" };
   }
-  // 16. Ekstraktivizm: Taş Ocakları (Dağ / Taş)
   if (layerId.includes("ekst_quarries") || layerName.includes("ocak")) {
     return { iconClass: "fa-mountain", color: "#d97706", label: "Maden & Taş Ocağı" };
+  }
+
+  // ==========================================
+  // 5. UMUT-SEN DİRENİŞ KATMANLARI
+  // ==========================================
+  const lowerLayer = layerName.toLowerCase();
+  const lowerTitle = title.toLowerCase();
+  const lowerDesc = desc.toLowerCase();
+
+  if (layerId.includes("isci") || lowerLayer.includes("işçi") || lowerTitle.includes("grev") || lowerTitle.includes("işçi") || lowerDesc.includes("grev")) {
+    return { iconClass: "fa-fist-raised", color: "#dc2626", label: "İşçi Direnişi / Grev" };
+  }
+  if (layerId.includes("ekoloji") || lowerLayer.includes("ekoloji") || lowerTitle.includes("maden") || lowerTitle.includes("orman") || lowerTitle.includes("jes") || lowerDesc.includes("ekoloji")) {
+    return { iconClass: "fa-leaf", color: "#16a34a", label: "Ekoloji Mücadelesi" };
+  }
+  if (layerId.includes("cinayet") || lowerLayer.includes("cinayet") || lowerTitle.includes("katliam") || lowerTitle.includes("cinayeti") || lowerDesc.includes("iş cinayeti")) {
+    return { iconClass: "fa-scale-balanced", color: "#1e293b", label: "İş Cinayeti Davası" };
+  }
+  if (layerId.includes("hapishane") || lowerLayer.includes("hapishane") || lowerTitle.includes("açlık grevi") || lowerTitle.includes("mahpus") || lowerDesc.includes("hapishane")) {
+    return { iconClass: "fa-lock", color: "#ea580c", label: "Hapishane Direnişi" };
+  }
+  if (layerId.includes("kayip") || lowerLayer.includes("kayıp") || lowerTitle.includes("anneleri") || lowerTitle.includes("adalet") || lowerDesc.includes("kayıp")) {
+    return { iconClass: "fa-heart", color: "#9333ea", label: "Kayıp Yakınları / Adalet" };
+  }
+
+  // ==========================================
+  // 6. SANAYİ VE OSB KATMANLARI
+  // ==========================================
+  if (layerId.includes("osb") || lowerLayer.includes("organize") || lowerLayer.includes("osb") || lowerTitle.includes("osb")) {
+    return { iconClass: "fa-industry", color: "#2563eb", label: "Organize Sanayi Bölgesi" };
+  }
+  if (layerId.includes("tgb") || lowerLayer.includes("teknoloji") || lowerLayer.includes("tgb") || lowerTitle.includes("teknokent")) {
+    return { iconClass: "fa-flask", color: "#7c3aed", label: "Teknoloji Geliştirme Bölgesi" };
+  }
+  if (layerId.includes("eb") || lowerLayer.includes("endüstri") || lowerLayer.includes("eb")) {
+    return { iconClass: "fa-warehouse", color: "#059669", label: "Endüstri Bölgesi" };
+  }
+  if (layerId.includes("ontahsis") || lowerLayer.includes("tahsis")) {
+    return { iconClass: "fa-drafting-compass", color: "#d97706", label: "Ön Tahsis Alanı" };
+  }
+  if (layerId.includes("yatirim") || lowerLayer.includes("yatırım")) {
+    return { iconClass: "fa-briefcase", color: "#0284c7", label: "Yatırım Alanı" };
   }
 
   const defaultColor = feature.layer?.color || "#3b82f6";
   return { iconClass: "fa-map-pin", color: defaultColor, label: feature.layer?.name || "Konum" };
 }
 
-// maps22 ile BİREBİR AYNI - Kusursuz FontAwesome İkonlu Damla Pin
+// FontAwesome İkonlu Damla Pin (Direniş ve Sanayi için)
 function createDistinctPin(color: string, iconClass: string) {
   return L.divIcon({
     className: "custom-distinct-pin-marker",
@@ -166,7 +224,7 @@ function createDistinctPin(color: string, iconClass: string) {
   });
 }
 
-// Son derece şık, okunaklı, kontrastlı ve yapılandırılmış Popup İçeriği
+// Şık, Okunaklı ve Yapılandırılmış Popup İçeriği
 function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; color: string; label: string }) {
   const desc = feature.description || "";
   const hasPipes = desc.includes(" | ");
@@ -213,12 +271,12 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
         {feature.layer?.name || label}
       </div>
 
-      {/* Başlık (Açık Beyaz, Tam Okunaklı) */}
+      {/* Başlık */}
       <h3 style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: "700", color: "#ffffff", lineHeight: "1.35" }}>
         {feature.title}
       </h3>
 
-      {/* Yapılandırılmış Açıklama / Satırlar */}
+      {/* Yapılandırılmış Bilgi Satırları */}
       {hasPipes ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px" }}>
           {rows.map((r, i) => (
@@ -234,7 +292,7 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
                 <>
                   <span style={{ color: "#94a3b8", fontWeight: "500", whiteSpace: "nowrap" }}>{r.key}:</span>
                   <span style={{
-                    color: r.key.toLowerCase().includes("durum") ? "#10b981" : "#f1f5f9",
+                    color: r.key.toLowerCase().includes("durum") ? (r.val.toLowerCase().includes("olumsuz") || r.val.toLowerCase().includes("iptal") ? "#4ade80" : "#f87171") : "#f1f5f9",
                     fontWeight: "600",
                     textAlign: "right"
                   }}>
@@ -247,7 +305,6 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
             </div>
           ))}
 
-          {/* Talepler / Notlar Bölümü */}
           {detailedNotes && (
             <div style={{
               marginTop: "6px",
@@ -267,7 +324,6 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
           )}
         </div>
       ) : (
-        /* Standart Açıklama Metni */
         <p style={{ margin: 0, fontSize: "13px", color: "#cbd5e1", lineHeight: "1.55" }}>
           {desc || "Açıklama bulunmuyor."}
         </p>
@@ -279,6 +335,9 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
 export default function Map({ features, isAdmin, onFeatureCreated, selectedLayerId }: MapProps) {
   const [currentZoom, setCurrentZoom] = useState(6);
   const ZOOM_THRESHOLD = 10;
+
+  // Performans Optimizasyonu: Çok sayıda nokta (> 500) varsa Canvas CircleMarker kullanarak 60 FPS hız sağla
+  const isHighDensity = features.length > 500;
 
   const onCreated = (e: any) => {
     const { layerType, layer } = e;
@@ -298,7 +357,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
   };
 
   return (
-    <MapContainer center={[39.0, 35.2]} zoom={6} style={{ height: "100%", width: "100%" }}>
+    <MapContainer center={[39.0, 35.2]} zoom={6} preferCanvas={true} style={{ height: "100%", width: "100%" }}>
       <ZoomHandler onZoom={setCurrentZoom} />
 
       <LayersControl position="topright">
@@ -353,9 +412,31 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
         }
 
         const { iconClass, color, label } = getIconAndColor(feature);
-        const distinctPinIcon = createDistinctPin(color, iconClass);
 
         if (feature.type === "POINT") {
+          // Yüksek yoğunluklu katmanlar (ÇED, Taşınmaz 10.000+ nokta): GPU Canvas CircleMarker (SIFIR KASMA, 60 FPS)
+          if (isHighDensity) {
+            return (
+              <CircleMarker
+                key={feature.id}
+                center={coords}
+                radius={currentZoom >= 11 ? 7 : 5}
+                pathOptions={{
+                  fillColor: color,
+                  color: "#ffffff",
+                  weight: 1.2,
+                  fillOpacity: 0.9,
+                }}
+              >
+                <Popup>
+                  <FeaturePopupContent feature={feature} color={color} label={label} />
+                </Popup>
+              </CircleMarker>
+            );
+          }
+
+          // Düşük yoğunluklu katmanlar (Direniş Haritası vb.): Özel FontAwesome Damla Pin
+          const distinctPinIcon = createDistinctPin(color, iconClass);
           return (
             <Marker key={feature.id} position={coords} icon={distinctPinIcon}>
               <Popup>
@@ -364,11 +445,37 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
             </Marker>
           );
         } else if (feature.type === "POLYGON") {
-          // Uzak Zoom (< 10): Ayırt Edici Pin Simgesi
+          // Uzak Zoom (< 10)
           if (currentZoom < ZOOM_THRESHOLD) {
             const center = getPolygonCenter(coords);
             if (!center) return null;
 
+            if (isHighDensity) {
+              return (
+                <CircleMarker
+                  key={`pin-${feature.id}`}
+                  center={center}
+                  radius={5}
+                  pathOptions={{
+                    fillColor: color,
+                    color: "#ffffff",
+                    weight: 1.2,
+                    fillOpacity: 0.85,
+                  }}
+                >
+                  <Popup>
+                    <div>
+                      <FeaturePopupContent feature={feature} color={color} label={label} />
+                      <small style={{ color: "#94a3b8", marginTop: "8px", display: "block" }}>
+                        🔍 Sınırları görmek için haritada yaklaşın
+                      </small>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              );
+            }
+
+            const distinctPinIcon = createDistinctPin(color, iconClass);
             return (
               <Marker key={`pin-${feature.id}`} position={center} icon={distinctPinIcon}>
                 <Popup>
@@ -385,7 +492,16 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
 
           // Yakın Zoom (>= 10): Gerçek Poligon Sınır Alanı
           return (
-            <Polygon key={feature.id} positions={coords} pathOptions={{ color, fillColor: color, fillOpacity: 0.4 }}>
+            <Polygon
+              key={feature.id}
+              positions={coords}
+              pathOptions={{
+                color,
+                fillColor: color,
+                fillOpacity: 0.35,
+                weight: 1.5,
+              }}
+            >
               <Popup>
                 <FeaturePopupContent feature={feature} color={color} label={label} />
               </Popup>
@@ -393,7 +509,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
           );
         } else if (feature.type === "LINESTRING") {
           return (
-            <Polyline key={feature.id} positions={coords} pathOptions={{ color, weight: 5 }}>
+            <Polyline key={feature.id} positions={coords} pathOptions={{ color, weight: 4 }}>
               <Popup>
                 <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold", color: "#ffffff" }}>{feature.title}</h3>
                 <p style={{ margin: 0, fontSize: "14px", color: "#cbd5e1" }}>{feature.description}</p>

@@ -10,7 +10,7 @@ datasource db {
 model MapProject {
   id          String   @id @default(cuid())
   name        String
-  description String?
+  description String?  @db.Text
   layers      Layer[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
