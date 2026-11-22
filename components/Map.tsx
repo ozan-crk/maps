@@ -148,6 +148,31 @@ function getIconAndColor(feature: FeatureType): { iconKey: string; color: string
     return { iconKey: "star", color: "#0284c7", label: "Yatırım Alanı" };
   }
 
+  // 11. Ekstraktivizm: Maden İhale Alanları (MAPEG)
+  if (layerId.includes("ekst_ihaleler") || layerName.includes("ihale")) {
+    return { iconKey: "industry", color: "#dc2626", label: "Maden İhalesi (MAPEG)" };
+  }
+  // 12. Ekstraktivizm: ÇED Maden Projeleri
+  if (layerId.includes("ekst_ced") || layerName.includes("çed")) {
+    return { iconKey: "flask", color: "#059669", label: "ÇED Maden Projesi" };
+  }
+  // 13. Ekstraktivizm: Taşınmaz & Ruhsat Kararları
+  if (layerId.includes("ekst_tasinmaz") || layerName.includes("taşınmaz")) {
+    return { iconKey: "compass", color: "#2563eb", label: "Taşınmaz Kararı" };
+  }
+  // 14. Ekstraktivizm: Korunan Alanlar (DKMP / Milli Park)
+  if (layerId.includes("ekst_dkmp") || layerName.includes("koruma") || layerName.includes("milli park")) {
+    return { iconKey: "leaf", color: "#16a34a", label: "Doğa Koruma Alanı" };
+  }
+  // 15. Ekstraktivizm: Su Havzaları
+  if (layerId.includes("ekst_havzalar") || layerName.includes("havza")) {
+    return { iconKey: "star", color: "#0284c7", label: "Su Havzası" };
+  }
+  // 16. Ekstraktivizm: Taş Ocakları (OSM)
+  if (layerId.includes("ekst_quarries") || layerName.includes("ocak")) {
+    return { iconKey: "warehouse", color: "#d97706", label: "Maden / Taş Ocağı" };
+  }
+
   const defaultColor = feature.layer?.color || "#3b82f6";
   return { iconKey: "pin", color: defaultColor, label: feature.layer?.name || "Konum" };
 }

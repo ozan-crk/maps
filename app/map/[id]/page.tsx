@@ -11,6 +11,7 @@ export default function Home() {
   const [layers, setLayers] = useState<any[]>([]);
   const [activeLayerIds, setActiveLayerIds] = useState<Set<string>>(new Set());
   const [mapDetails, setMapDetails] = useState<any>(null);
+  const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (!mapId) return;
@@ -64,10 +65,31 @@ export default function Home() {
           zIndex: 1000,
         }}
       >
-        <h1 style={{ fontSize: "24px", marginBottom: "20px", fontWeight: "600" }}>{mapDetails?.name || "Harita Yükleniyor..."}</h1>
-        {mapDetails?.description && (
-          <p style={{ fontSize: "14px", color: "#94a3b8", marginBottom: "20px" }}>{mapDetails.description}</p>
-        )}
+        <h1 style={{ fontSize: "24px", marginBottom: "12px", fontWeight: "600" }}>{mapDetails?.name || "Harita Yükleniyor..."}</h1>
+        
+        {/* Harita Açıklama ve Kaynaklar Butonu */}
+        <button
+          onClick={() => setShowInfoModal(true)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            width: "100%",
+            padding: "8px 12px",
+            background: "rgba(59, 130, 246, 0.15)",
+            border: "1px solid rgba(59, 130, 246, 0.4)",
+            borderRadius: "8px",
+            color: "#93c5fd",
+            fontSize: "13px",
+            fontWeight: 500,
+            cursor: "pointer",
+            marginBottom: "16px",
+            transition: "all 0.2s ease"
+          }}
+        >
+          <span>ℹ️</span> Harita Bilgisi & Kaynaklar
+        </button>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {layers.map((layer) => (
             <div
@@ -113,6 +135,89 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Harita Açıklama & Veri Kaynakları Modalı */}
+      {showInfoModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(6px)",
+          zIndex: 2000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px"
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: "600px",
+            width: "100%",
+            padding: "24px",
+            maxHeight: "85vh",
+            overflowY: "auto",
+            position: "relative"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "uppercase", color: "#60a5fa", letterSpacing: "0.5px" }}>
+                  Harita Bilgisi & Kaynaklar
+                </span>
+                <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#f8fafc", marginTop: "4px" }}>
+                  {mapDetails?.name}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowInfoModal(false)}
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  color: "#fff",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{
+              fontSize: "14px",
+              color: "#cbd5e1",
+              lineHeight: "1.6",
+              whiteSpace: "pre-line",
+              background: "rgba(255,255,255,0.03)",
+              padding: "16px",
+              borderRadius: "8px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              marginBottom: "16px"
+            }}>
+              {mapDetails?.description || "Bu harita için henüz detaylı açıklama eklenmemiştir. Admin panelinden açıklama ekleyebilirsiniz."}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <a
+                href="/admin"
+                style={{ fontSize: "12px", color: "var(--primary)", textDecoration: "none" }}
+              >
+                ✏️ Açıklamayı Düzenle (Admin)
+              </a>
+              <button
+                className="btn"
+                onClick={() => setShowInfoModal(false)}
+                style={{ padding: "6px 16px", fontSize: "13px" }}
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

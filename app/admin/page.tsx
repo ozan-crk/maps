@@ -8,6 +8,9 @@ export default function AdminPage() {
   const [selectedMapId, setSelectedMapId] = useState<string>("");
   const [newMapName, setNewMapName] = useState("");
   const [newMapDesc, setNewMapDesc] = useState("");
+  const [currentMapName, setCurrentMapName] = useState("");
+  const [currentMapDesc, setCurrentMapDesc] = useState("");
+  const [isUpdatingMap, setIsUpdatingMap] = useState(false);
 
   const [layers, setLayers] = useState<any[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string>("");
@@ -87,6 +90,33 @@ export default function AdminPage() {
   useEffect(() => {
     fetchLayers();
   }, [selectedMapId]);
+
+  useEffect(() => {
+    const active = maps.find((m) => m.id === selectedMapId);
+    if (active) {
+      setCurrentMapName(active.name || "");
+      setCurrentMapDesc(active.description || "");
+    }
+  }, [selectedMapId, maps]);
+
+  const updateMapDetails = async () => {
+    if (!selectedMapId) return;
+    setIsUpdatingMap(true);
+    try {
+      const res = await fetch(`/api/maps/${selectedMapId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: currentMapName, description: currentMapDesc }),
+      });
+      if (!res.ok) throw new Error("Güncelleme başarısız");
+      alert("Harita bilgisi ve açıklama başarıyla kaydedildi!");
+      fetchMaps();
+    } catch (err: any) {
+      alert(err.message || "Hata oluştu");
+    } finally {
+      setIsUpdatingMap(false);
+    }
+  };
 
   const createMap = async () => {
     if (!newMapName) return;
@@ -314,6 +344,39 @@ export default function AdminPage() {
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
+          {selectedMapId && (
+            <div style={{ marginTop: "12px", marginBottom: "12px", padding: "12px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <h4 style={{ fontSize: "13px", marginBottom: "8px", color: "var(--primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span>📝</span> Harita Bilgisi & Açıklama / Kaynaklar
+              </h4>
+              <label style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "3px" }}>Harita Başlığı</label>
+              <input
+                type="text"
+                className="input-field"
+                style={{ marginBottom: "8px", fontSize: "13px", padding: "8px" }}
+                value={currentMapName}
+                onChange={(e) => setCurrentMapName(e.target.value)}
+              />
+              <label style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "3px" }}>Harita Açıklaması & Veri Kaynakları</label>
+              <textarea
+                className="input-field"
+                rows={5}
+                style={{ marginBottom: "10px", fontSize: "12px", resize: "vertical", fontFamily: "inherit", padding: "8px", lineHeight: "1.4" }}
+                placeholder="Örn: Bu haritadaki veriler Ekoloji Enstitüsü, Sanayi Bakanlığı ve Umut-Sen kayıtlarından derlenmiştir..."
+                value={currentMapDesc}
+                onChange={(e) => setCurrentMapDesc(e.target.value)}
+              />
+              <button
+                className="btn"
+                style={{ width: "100%", padding: "7px 12px", fontSize: "12px", background: "#10b981" }}
+                onClick={updateMapDetails}
+                disabled={isUpdatingMap}
+              >
+                {isUpdatingMap ? "Kaydediliyor..." : "💾 Harita Açıklamasını Kaydet"}
+              </button>
+            </div>
+          )}
+
           {selectedMapId && (
             <div style={{ marginTop: "15px", marginBottom: "10px", padding: "10px", background: "rgba(59, 130, 246, 0.1)", borderRadius: "8px", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
               <h4 style={{ fontSize: "12px", marginBottom: "5px", color: "var(--primary)" }}>Genel Erişim Linki</h4>
