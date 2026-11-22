@@ -3,6 +3,8 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 ALTER TABLE MapProject MODIFY COLUMN description TEXT;
+ALTER TABLE Feature MODIFY COLUMN title TEXT;
+ALTER TABLE Feature MODIFY COLUMN description TEXT;
 
 INSERT INTO MapProject (id, name, description, createdAt, updatedAt) VALUES ('ekstraktivizm-haritasi', 'Ekoloji Enstitüsü Ekstraktivizm Haritası', 'Türkiye genelindeki maden ihaleleri (MAPEG), ÇED maden süreçleri, taşınmaz ve acele kamulaştırma kararları, taş ocakları, korunan milli parklar/doğa alanları ve su havzaları haritası.\\n\\nVeri Kaynağı: https://ekstraktivizm.ekolojienstitu.org/ (MAPEG, ÇŞİDB, DKMP ve Cumhurbaşkanlığı Kararları)', NOW(), NOW()) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), updatedAt=NOW();
 

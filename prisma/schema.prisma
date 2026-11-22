@@ -21,7 +21,7 @@ model Layer {
   mapId     String
   map       MapProject @relation(fields: [mapId], references: [id], onDelete: Cascade)
   name      String
-  iconUrl   String?
+  iconUrl   String?  @db.Text
   color     String?     // Poligonlar veya marker ikonları için renk
   isActive  Boolean     @default(true)
   features  Feature[]
@@ -33,9 +33,9 @@ model Feature {
   id          String   @id @default(cuid())
   layerId     String
   layer       Layer    @relation(fields: [layerId], references: [id], onDelete: Cascade)
-  title       String
+  title       String   @db.Text
   description String?  @db.Text
-  iconUrl     String?
+  iconUrl     String?  @db.Text
   type        String   // "POINT", "POLYGON", "LINESTRING" vs.
   coordinates String   @db.LongText // JSON string olarak koordinatlar: "[lng, lat]" veya "[[[lng,lat], ...]]"
   createdAt   DateTime @default(now())
