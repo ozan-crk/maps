@@ -59,26 +59,49 @@ function ZoomHandler({ onZoom }: { onZoom: (zoom: number) => void }) {
 
 function getPolygonCenter(coords: any): [number, number] | null {
   try {
-    let points: [number, number][] = [];
-    if (Array.isArray(coords) && coords.length > 0) {
-      if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
-        points = coords[0];
-      } else if (Array.isArray(coords[0])) {
-        points = coords;
+    const points: [number, number][] = [];
+    function extractPoints(arr: any) {
+      if (!Array.isArray(arr) || arr.length === 0) return;
+      if (typeof arr[0] === "number" && typeof arr[1] === "number") {
+        if (!isNaN(arr[0]) && !isNaN(arr[1]) && isFinite(arr[0]) && isFinite(arr[1])) {
+          points.push([arr[0], arr[1]]);
+        }
+        return;
+      }
+      for (const item of arr) {
+        extractPoints(item);
       }
     }
+    extractPoints(coords);
     if (points.length === 0) return null;
 
     let sumLat = 0;
     let sumLng = 0;
-    points.forEach((p) => {
+    for (const p of points) {
       sumLat += p[0];
       sumLng += p[1];
-    });
-    return [sumLat / points.length, sumLng / points.length];
+    }
+    const centerLat = sumLat / points.length;
+    const centerLng = sumLng / points.length;
+    if (isNaN(centerLat) || isNaN(centerLng) || !isFinite(centerLat) || !isFinite(centerLng)) {
+      return null;
+    }
+    return [centerLat, centerLng];
   } catch {
     return null;
   }
+}
+
+function isValidPolygonCoords(coords: any): boolean {
+  if (!Array.isArray(coords) || coords.length === 0) return false;
+  function check(arr: any): boolean {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    if (typeof arr[0] === "number" && typeof arr[1] === "number") {
+      return !isNaN(arr[0]) && !isNaN(arr[1]) && isFinite(arr[0]) && isFinite(arr[1]);
+    }
+    return arr.every(check);
+  }
+  return check(coords);
 }
 
 function getIconAndColor(feature: FeatureType): { iconClass: string; color: string; label: string } {
@@ -309,7 +332,19 @@ function MarkerClusterLayer({ features }: { features: FeatureType[] }) {
         }
       }
 
-      if (!coords || !Array.isArray(coords) || coords.length < 2) return;
+      if (
+        !coords ||
+        !Array.isArray(coords) ||
+        coords.length < 2 ||
+        typeof coords[0] !== "number" ||
+        typeof coords[1] !== "number" ||
+        isNaN(coords[0]) ||
+        isNaN(coords[1]) ||
+        !isFinite(coords[0]) ||
+        !isFinite(coords[1])
+      ) {
+        return;
+      }
 
       const { iconClass, color, label } = getIconAndColor(feature);
       const icon = createDistinctPin(color, iconClass);
@@ -445,22 +480,25 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
         <ZoomHandler onZoom={setCurrentZoom} />
 
         <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Koyu Harita (CartoDB Dark)">
+          <LayersControl.BaseLayer checked name="Koyu Harita (Esri Dark)">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution="Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Uydu Görüntüsü (Esri)">
+          <LayersControl.BaseLayer name="Uydu Görüntüsü (Esri World Imagery)">
             <TileLayer
-              attribution="Tiles &copy; Esri"
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={19}
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Sokak Haritası (OSM)">
+          <LayersControl.BaseLayer name="Sokak Haritası (OpenStreetMap)">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
             />
           </LayersControl.BaseLayer>
         </LayersControl>
@@ -495,6 +533,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
             } catch {
               return null;
             }
+            if (!isValidPolygonCoords(coords)) return null;
             const { color, label } = getIconAndColor(feature);
             return (
               <Polygon
