@@ -137,3 +137,13 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(20px);
 }
+
+/* Özel Ayırt Edici Harita Pinleri Stilleri */
+.custom-distinct-pin-marker {
+  background: transparent !important;
+  border: none !important;
+}
+.custom-distinct-pin-marker:hover > div {
+  transform: rotate(-45deg) scale(1.18) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+}
