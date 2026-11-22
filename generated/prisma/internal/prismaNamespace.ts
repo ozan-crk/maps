@@ -669,7 +669,6 @@ export type MapProjectScalarFieldEnum = (typeof MapProjectScalarFieldEnum)[keyof
 
 export const LayerScalarFieldEnum = {
   id: 'id',
-  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color',
@@ -723,7 +722,6 @@ export type MapProjectOrderByRelevanceFieldEnum = (typeof MapProjectOrderByRelev
 
 export const LayerOrderByRelevanceFieldEnum = {
   id: 'id',
-  mapId: 'mapId',
   name: 'name',
   iconUrl: 'iconUrl',
   color: 'color'

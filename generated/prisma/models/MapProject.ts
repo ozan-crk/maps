@@ -235,7 +235,7 @@ export type MapProjectCreateInput = {
   description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  layers?: Prisma.LayerCreateNestedManyWithoutMapInput
+  layers?: Prisma.LayerCreateNestedManyWithoutMapsInput
 }
 
 export type MapProjectUncheckedCreateInput = {
@@ -244,7 +244,7 @@ export type MapProjectUncheckedCreateInput = {
   description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  layers?: Prisma.LayerUncheckedCreateNestedManyWithoutMapInput
+  layers?: Prisma.LayerUncheckedCreateNestedManyWithoutMapsInput
 }
 
 export type MapProjectUpdateInput = {
@@ -253,7 +253,7 @@ export type MapProjectUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  layers?: Prisma.LayerUpdateManyWithoutMapNestedInput
+  layers?: Prisma.LayerUpdateManyWithoutMapsNestedInput
 }
 
 export type MapProjectUncheckedUpdateInput = {
@@ -262,7 +262,7 @@ export type MapProjectUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  layers?: Prisma.LayerUncheckedUpdateManyWithoutMapNestedInput
+  layers?: Prisma.LayerUncheckedUpdateManyWithoutMapsNestedInput
 }
 
 export type MapProjectCreateManyInput = {
@@ -319,9 +319,14 @@ export type MapProjectMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type MapProjectScalarRelationFilter = {
-  is?: Prisma.MapProjectWhereInput
-  isNot?: Prisma.MapProjectWhereInput
+export type MapProjectListRelationFilter = {
+  every?: Prisma.MapProjectWhereInput
+  some?: Prisma.MapProjectWhereInput
+  none?: Prisma.MapProjectWhereInput
+}
+
+export type MapProjectOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -336,18 +341,42 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
-export type MapProjectCreateNestedOneWithoutLayersInput = {
-  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput>
-  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput
-  connect?: Prisma.MapProjectWhereUniqueInput
+export type MapProjectCreateNestedManyWithoutLayersInput = {
+  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput> | Prisma.MapProjectCreateWithoutLayersInput[] | Prisma.MapProjectUncheckedCreateWithoutLayersInput[]
+  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput | Prisma.MapProjectCreateOrConnectWithoutLayersInput[]
+  connect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
 }
 
-export type MapProjectUpdateOneRequiredWithoutLayersNestedInput = {
-  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput>
-  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput
-  upsert?: Prisma.MapProjectUpsertWithoutLayersInput
-  connect?: Prisma.MapProjectWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.MapProjectUpdateToOneWithWhereWithoutLayersInput, Prisma.MapProjectUpdateWithoutLayersInput>, Prisma.MapProjectUncheckedUpdateWithoutLayersInput>
+export type MapProjectUncheckedCreateNestedManyWithoutLayersInput = {
+  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput> | Prisma.MapProjectCreateWithoutLayersInput[] | Prisma.MapProjectUncheckedCreateWithoutLayersInput[]
+  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput | Prisma.MapProjectCreateOrConnectWithoutLayersInput[]
+  connect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+}
+
+export type MapProjectUpdateManyWithoutLayersNestedInput = {
+  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput> | Prisma.MapProjectCreateWithoutLayersInput[] | Prisma.MapProjectUncheckedCreateWithoutLayersInput[]
+  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput | Prisma.MapProjectCreateOrConnectWithoutLayersInput[]
+  upsert?: Prisma.MapProjectUpsertWithWhereUniqueWithoutLayersInput | Prisma.MapProjectUpsertWithWhereUniqueWithoutLayersInput[]
+  set?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  disconnect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  delete?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  connect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  update?: Prisma.MapProjectUpdateWithWhereUniqueWithoutLayersInput | Prisma.MapProjectUpdateWithWhereUniqueWithoutLayersInput[]
+  updateMany?: Prisma.MapProjectUpdateManyWithWhereWithoutLayersInput | Prisma.MapProjectUpdateManyWithWhereWithoutLayersInput[]
+  deleteMany?: Prisma.MapProjectScalarWhereInput | Prisma.MapProjectScalarWhereInput[]
+}
+
+export type MapProjectUncheckedUpdateManyWithoutLayersNestedInput = {
+  create?: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput> | Prisma.MapProjectCreateWithoutLayersInput[] | Prisma.MapProjectUncheckedCreateWithoutLayersInput[]
+  connectOrCreate?: Prisma.MapProjectCreateOrConnectWithoutLayersInput | Prisma.MapProjectCreateOrConnectWithoutLayersInput[]
+  upsert?: Prisma.MapProjectUpsertWithWhereUniqueWithoutLayersInput | Prisma.MapProjectUpsertWithWhereUniqueWithoutLayersInput[]
+  set?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  disconnect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  delete?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  connect?: Prisma.MapProjectWhereUniqueInput | Prisma.MapProjectWhereUniqueInput[]
+  update?: Prisma.MapProjectUpdateWithWhereUniqueWithoutLayersInput | Prisma.MapProjectUpdateWithWhereUniqueWithoutLayersInput[]
+  updateMany?: Prisma.MapProjectUpdateManyWithWhereWithoutLayersInput | Prisma.MapProjectUpdateManyWithWhereWithoutLayersInput[]
+  deleteMany?: Prisma.MapProjectScalarWhereInput | Prisma.MapProjectScalarWhereInput[]
 }
 
 export type MapProjectCreateWithoutLayersInput = {
@@ -371,15 +400,31 @@ export type MapProjectCreateOrConnectWithoutLayersInput = {
   create: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput>
 }
 
-export type MapProjectUpsertWithoutLayersInput = {
+export type MapProjectUpsertWithWhereUniqueWithoutLayersInput = {
+  where: Prisma.MapProjectWhereUniqueInput
   update: Prisma.XOR<Prisma.MapProjectUpdateWithoutLayersInput, Prisma.MapProjectUncheckedUpdateWithoutLayersInput>
   create: Prisma.XOR<Prisma.MapProjectCreateWithoutLayersInput, Prisma.MapProjectUncheckedCreateWithoutLayersInput>
-  where?: Prisma.MapProjectWhereInput
 }
 
-export type MapProjectUpdateToOneWithWhereWithoutLayersInput = {
-  where?: Prisma.MapProjectWhereInput
+export type MapProjectUpdateWithWhereUniqueWithoutLayersInput = {
+  where: Prisma.MapProjectWhereUniqueInput
   data: Prisma.XOR<Prisma.MapProjectUpdateWithoutLayersInput, Prisma.MapProjectUncheckedUpdateWithoutLayersInput>
+}
+
+export type MapProjectUpdateManyWithWhereWithoutLayersInput = {
+  where: Prisma.MapProjectScalarWhereInput
+  data: Prisma.XOR<Prisma.MapProjectUpdateManyMutationInput, Prisma.MapProjectUncheckedUpdateManyWithoutLayersInput>
+}
+
+export type MapProjectScalarWhereInput = {
+  AND?: Prisma.MapProjectScalarWhereInput | Prisma.MapProjectScalarWhereInput[]
+  OR?: Prisma.MapProjectScalarWhereInput[]
+  NOT?: Prisma.MapProjectScalarWhereInput | Prisma.MapProjectScalarWhereInput[]
+  id?: Prisma.StringFilter<"MapProject"> | string
+  name?: Prisma.StringFilter<"MapProject"> | string
+  description?: Prisma.StringNullableFilter<"MapProject"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"MapProject"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"MapProject"> | Date | string
 }
 
 export type MapProjectUpdateWithoutLayersInput = {
@@ -391,6 +436,14 @@ export type MapProjectUpdateWithoutLayersInput = {
 }
 
 export type MapProjectUncheckedUpdateWithoutLayersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MapProjectUncheckedUpdateManyWithoutLayersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null

@@ -26,7 +26,6 @@ export type AggregateLayer = {
 
 export type LayerMinAggregateOutputType = {
   id: string | null
-  mapId: string | null
   name: string | null
   iconUrl: string | null
   color: string | null
@@ -37,7 +36,6 @@ export type LayerMinAggregateOutputType = {
 
 export type LayerMaxAggregateOutputType = {
   id: string | null
-  mapId: string | null
   name: string | null
   iconUrl: string | null
   color: string | null
@@ -48,7 +46,6 @@ export type LayerMaxAggregateOutputType = {
 
 export type LayerCountAggregateOutputType = {
   id: number
-  mapId: number
   name: number
   iconUrl: number
   color: number
@@ -61,7 +58,6 @@ export type LayerCountAggregateOutputType = {
 
 export type LayerMinAggregateInputType = {
   id?: true
-  mapId?: true
   name?: true
   iconUrl?: true
   color?: true
@@ -72,7 +68,6 @@ export type LayerMinAggregateInputType = {
 
 export type LayerMaxAggregateInputType = {
   id?: true
-  mapId?: true
   name?: true
   iconUrl?: true
   color?: true
@@ -83,7 +78,6 @@ export type LayerMaxAggregateInputType = {
 
 export type LayerCountAggregateInputType = {
   id?: true
-  mapId?: true
   name?: true
   iconUrl?: true
   color?: true
@@ -167,7 +161,6 @@ export type LayerGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type LayerGroupByOutputType = {
   id: string
-  mapId: string
   name: string
   iconUrl: string | null
   color: string | null
@@ -199,27 +192,25 @@ export type LayerWhereInput = {
   OR?: Prisma.LayerWhereInput[]
   NOT?: Prisma.LayerWhereInput | Prisma.LayerWhereInput[]
   id?: Prisma.StringFilter<"Layer"> | string
-  mapId?: Prisma.StringFilter<"Layer"> | string
   name?: Prisma.StringFilter<"Layer"> | string
   iconUrl?: Prisma.StringNullableFilter<"Layer"> | string | null
   color?: Prisma.StringNullableFilter<"Layer"> | string | null
   isActive?: Prisma.BoolFilter<"Layer"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Layer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Layer"> | Date | string
-  map?: Prisma.XOR<Prisma.MapProjectScalarRelationFilter, Prisma.MapProjectWhereInput>
+  maps?: Prisma.MapProjectListRelationFilter
   features?: Prisma.FeatureListRelationFilter
 }
 
 export type LayerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  mapId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   iconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   color?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  map?: Prisma.MapProjectOrderByWithRelationInput
+  maps?: Prisma.MapProjectOrderByRelationAggregateInput
   features?: Prisma.FeatureOrderByRelationAggregateInput
   _relevance?: Prisma.LayerOrderByRelevanceInput
 }
@@ -229,20 +220,18 @@ export type LayerWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.LayerWhereInput | Prisma.LayerWhereInput[]
   OR?: Prisma.LayerWhereInput[]
   NOT?: Prisma.LayerWhereInput | Prisma.LayerWhereInput[]
-  mapId?: Prisma.StringFilter<"Layer"> | string
   name?: Prisma.StringFilter<"Layer"> | string
   iconUrl?: Prisma.StringNullableFilter<"Layer"> | string | null
   color?: Prisma.StringNullableFilter<"Layer"> | string | null
   isActive?: Prisma.BoolFilter<"Layer"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Layer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Layer"> | Date | string
-  map?: Prisma.XOR<Prisma.MapProjectScalarRelationFilter, Prisma.MapProjectWhereInput>
+  maps?: Prisma.MapProjectListRelationFilter
   features?: Prisma.FeatureListRelationFilter
 }, "id">
 
 export type LayerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  mapId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   iconUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   color?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -259,7 +248,6 @@ export type LayerScalarWhereWithAggregatesInput = {
   OR?: Prisma.LayerScalarWhereWithAggregatesInput[]
   NOT?: Prisma.LayerScalarWhereWithAggregatesInput | Prisma.LayerScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Layer"> | string
-  mapId?: Prisma.StringWithAggregatesFilter<"Layer"> | string
   name?: Prisma.StringWithAggregatesFilter<"Layer"> | string
   iconUrl?: Prisma.StringNullableWithAggregatesFilter<"Layer"> | string | null
   color?: Prisma.StringNullableWithAggregatesFilter<"Layer"> | string | null
@@ -276,19 +264,19 @@ export type LayerCreateInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  map: Prisma.MapProjectCreateNestedOneWithoutLayersInput
+  maps?: Prisma.MapProjectCreateNestedManyWithoutLayersInput
   features?: Prisma.FeatureCreateNestedManyWithoutLayerInput
 }
 
 export type LayerUncheckedCreateInput = {
   id?: string
-  mapId: string
   name: string
   iconUrl?: string | null
   color?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  maps?: Prisma.MapProjectUncheckedCreateNestedManyWithoutLayersInput
   features?: Prisma.FeatureUncheckedCreateNestedManyWithoutLayerInput
 }
 
@@ -300,25 +288,24 @@ export type LayerUpdateInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  map?: Prisma.MapProjectUpdateOneRequiredWithoutLayersNestedInput
+  maps?: Prisma.MapProjectUpdateManyWithoutLayersNestedInput
   features?: Prisma.FeatureUpdateManyWithoutLayerNestedInput
 }
 
 export type LayerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  mapId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  maps?: Prisma.MapProjectUncheckedUpdateManyWithoutLayersNestedInput
   features?: Prisma.FeatureUncheckedUpdateManyWithoutLayerNestedInput
 }
 
 export type LayerCreateManyInput = {
   id?: string
-  mapId: string
   name: string
   iconUrl?: string | null
   color?: string | null
@@ -339,7 +326,6 @@ export type LayerUpdateManyMutationInput = {
 
 export type LayerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  mapId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -366,7 +352,6 @@ export type LayerOrderByRelevanceInput = {
 
 export type LayerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  mapId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   iconUrl?: Prisma.SortOrder
   color?: Prisma.SortOrder
@@ -377,7 +362,6 @@ export type LayerCountOrderByAggregateInput = {
 
 export type LayerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  mapId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   iconUrl?: Prisma.SortOrder
   color?: Prisma.SortOrder
@@ -388,7 +372,6 @@ export type LayerMaxOrderByAggregateInput = {
 
 export type LayerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  mapId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   iconUrl?: Prisma.SortOrder
   color?: Prisma.SortOrder
@@ -402,45 +385,41 @@ export type LayerScalarRelationFilter = {
   isNot?: Prisma.LayerWhereInput
 }
 
-export type LayerCreateNestedManyWithoutMapInput = {
-  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput> | Prisma.LayerCreateWithoutMapInput[] | Prisma.LayerUncheckedCreateWithoutMapInput[]
-  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapInput | Prisma.LayerCreateOrConnectWithoutMapInput[]
-  createMany?: Prisma.LayerCreateManyMapInputEnvelope
+export type LayerCreateNestedManyWithoutMapsInput = {
+  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput> | Prisma.LayerCreateWithoutMapsInput[] | Prisma.LayerUncheckedCreateWithoutMapsInput[]
+  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapsInput | Prisma.LayerCreateOrConnectWithoutMapsInput[]
   connect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
 }
 
-export type LayerUncheckedCreateNestedManyWithoutMapInput = {
-  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput> | Prisma.LayerCreateWithoutMapInput[] | Prisma.LayerUncheckedCreateWithoutMapInput[]
-  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapInput | Prisma.LayerCreateOrConnectWithoutMapInput[]
-  createMany?: Prisma.LayerCreateManyMapInputEnvelope
+export type LayerUncheckedCreateNestedManyWithoutMapsInput = {
+  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput> | Prisma.LayerCreateWithoutMapsInput[] | Prisma.LayerUncheckedCreateWithoutMapsInput[]
+  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapsInput | Prisma.LayerCreateOrConnectWithoutMapsInput[]
   connect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
 }
 
-export type LayerUpdateManyWithoutMapNestedInput = {
-  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput> | Prisma.LayerCreateWithoutMapInput[] | Prisma.LayerUncheckedCreateWithoutMapInput[]
-  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapInput | Prisma.LayerCreateOrConnectWithoutMapInput[]
-  upsert?: Prisma.LayerUpsertWithWhereUniqueWithoutMapInput | Prisma.LayerUpsertWithWhereUniqueWithoutMapInput[]
-  createMany?: Prisma.LayerCreateManyMapInputEnvelope
+export type LayerUpdateManyWithoutMapsNestedInput = {
+  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput> | Prisma.LayerCreateWithoutMapsInput[] | Prisma.LayerUncheckedCreateWithoutMapsInput[]
+  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapsInput | Prisma.LayerCreateOrConnectWithoutMapsInput[]
+  upsert?: Prisma.LayerUpsertWithWhereUniqueWithoutMapsInput | Prisma.LayerUpsertWithWhereUniqueWithoutMapsInput[]
   set?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   disconnect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   delete?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   connect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
-  update?: Prisma.LayerUpdateWithWhereUniqueWithoutMapInput | Prisma.LayerUpdateWithWhereUniqueWithoutMapInput[]
-  updateMany?: Prisma.LayerUpdateManyWithWhereWithoutMapInput | Prisma.LayerUpdateManyWithWhereWithoutMapInput[]
+  update?: Prisma.LayerUpdateWithWhereUniqueWithoutMapsInput | Prisma.LayerUpdateWithWhereUniqueWithoutMapsInput[]
+  updateMany?: Prisma.LayerUpdateManyWithWhereWithoutMapsInput | Prisma.LayerUpdateManyWithWhereWithoutMapsInput[]
   deleteMany?: Prisma.LayerScalarWhereInput | Prisma.LayerScalarWhereInput[]
 }
 
-export type LayerUncheckedUpdateManyWithoutMapNestedInput = {
-  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput> | Prisma.LayerCreateWithoutMapInput[] | Prisma.LayerUncheckedCreateWithoutMapInput[]
-  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapInput | Prisma.LayerCreateOrConnectWithoutMapInput[]
-  upsert?: Prisma.LayerUpsertWithWhereUniqueWithoutMapInput | Prisma.LayerUpsertWithWhereUniqueWithoutMapInput[]
-  createMany?: Prisma.LayerCreateManyMapInputEnvelope
+export type LayerUncheckedUpdateManyWithoutMapsNestedInput = {
+  create?: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput> | Prisma.LayerCreateWithoutMapsInput[] | Prisma.LayerUncheckedCreateWithoutMapsInput[]
+  connectOrCreate?: Prisma.LayerCreateOrConnectWithoutMapsInput | Prisma.LayerCreateOrConnectWithoutMapsInput[]
+  upsert?: Prisma.LayerUpsertWithWhereUniqueWithoutMapsInput | Prisma.LayerUpsertWithWhereUniqueWithoutMapsInput[]
   set?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   disconnect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   delete?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
   connect?: Prisma.LayerWhereUniqueInput | Prisma.LayerWhereUniqueInput[]
-  update?: Prisma.LayerUpdateWithWhereUniqueWithoutMapInput | Prisma.LayerUpdateWithWhereUniqueWithoutMapInput[]
-  updateMany?: Prisma.LayerUpdateManyWithWhereWithoutMapInput | Prisma.LayerUpdateManyWithWhereWithoutMapInput[]
+  update?: Prisma.LayerUpdateWithWhereUniqueWithoutMapsInput | Prisma.LayerUpdateWithWhereUniqueWithoutMapsInput[]
+  updateMany?: Prisma.LayerUpdateManyWithWhereWithoutMapsInput | Prisma.LayerUpdateManyWithWhereWithoutMapsInput[]
   deleteMany?: Prisma.LayerScalarWhereInput | Prisma.LayerScalarWhereInput[]
 }
 
@@ -462,7 +441,7 @@ export type LayerUpdateOneRequiredWithoutFeaturesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LayerUpdateToOneWithWhereWithoutFeaturesInput, Prisma.LayerUpdateWithoutFeaturesInput>, Prisma.LayerUncheckedUpdateWithoutFeaturesInput>
 }
 
-export type LayerCreateWithoutMapInput = {
+export type LayerCreateWithoutMapsInput = {
   id?: string
   name: string
   iconUrl?: string | null
@@ -473,7 +452,7 @@ export type LayerCreateWithoutMapInput = {
   features?: Prisma.FeatureCreateNestedManyWithoutLayerInput
 }
 
-export type LayerUncheckedCreateWithoutMapInput = {
+export type LayerUncheckedCreateWithoutMapsInput = {
   id?: string
   name: string
   iconUrl?: string | null
@@ -484,30 +463,25 @@ export type LayerUncheckedCreateWithoutMapInput = {
   features?: Prisma.FeatureUncheckedCreateNestedManyWithoutLayerInput
 }
 
-export type LayerCreateOrConnectWithoutMapInput = {
+export type LayerCreateOrConnectWithoutMapsInput = {
   where: Prisma.LayerWhereUniqueInput
-  create: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput>
+  create: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput>
 }
 
-export type LayerCreateManyMapInputEnvelope = {
-  data: Prisma.LayerCreateManyMapInput | Prisma.LayerCreateManyMapInput[]
-  skipDuplicates?: boolean
-}
-
-export type LayerUpsertWithWhereUniqueWithoutMapInput = {
+export type LayerUpsertWithWhereUniqueWithoutMapsInput = {
   where: Prisma.LayerWhereUniqueInput
-  update: Prisma.XOR<Prisma.LayerUpdateWithoutMapInput, Prisma.LayerUncheckedUpdateWithoutMapInput>
-  create: Prisma.XOR<Prisma.LayerCreateWithoutMapInput, Prisma.LayerUncheckedCreateWithoutMapInput>
+  update: Prisma.XOR<Prisma.LayerUpdateWithoutMapsInput, Prisma.LayerUncheckedUpdateWithoutMapsInput>
+  create: Prisma.XOR<Prisma.LayerCreateWithoutMapsInput, Prisma.LayerUncheckedCreateWithoutMapsInput>
 }
 
-export type LayerUpdateWithWhereUniqueWithoutMapInput = {
+export type LayerUpdateWithWhereUniqueWithoutMapsInput = {
   where: Prisma.LayerWhereUniqueInput
-  data: Prisma.XOR<Prisma.LayerUpdateWithoutMapInput, Prisma.LayerUncheckedUpdateWithoutMapInput>
+  data: Prisma.XOR<Prisma.LayerUpdateWithoutMapsInput, Prisma.LayerUncheckedUpdateWithoutMapsInput>
 }
 
-export type LayerUpdateManyWithWhereWithoutMapInput = {
+export type LayerUpdateManyWithWhereWithoutMapsInput = {
   where: Prisma.LayerScalarWhereInput
-  data: Prisma.XOR<Prisma.LayerUpdateManyMutationInput, Prisma.LayerUncheckedUpdateManyWithoutMapInput>
+  data: Prisma.XOR<Prisma.LayerUpdateManyMutationInput, Prisma.LayerUncheckedUpdateManyWithoutMapsInput>
 }
 
 export type LayerScalarWhereInput = {
@@ -515,7 +489,6 @@ export type LayerScalarWhereInput = {
   OR?: Prisma.LayerScalarWhereInput[]
   NOT?: Prisma.LayerScalarWhereInput | Prisma.LayerScalarWhereInput[]
   id?: Prisma.StringFilter<"Layer"> | string
-  mapId?: Prisma.StringFilter<"Layer"> | string
   name?: Prisma.StringFilter<"Layer"> | string
   iconUrl?: Prisma.StringNullableFilter<"Layer"> | string | null
   color?: Prisma.StringNullableFilter<"Layer"> | string | null
@@ -532,18 +505,18 @@ export type LayerCreateWithoutFeaturesInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  map: Prisma.MapProjectCreateNestedOneWithoutLayersInput
+  maps?: Prisma.MapProjectCreateNestedManyWithoutLayersInput
 }
 
 export type LayerUncheckedCreateWithoutFeaturesInput = {
   id?: string
-  mapId: string
   name: string
   iconUrl?: string | null
   color?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  maps?: Prisma.MapProjectUncheckedCreateNestedManyWithoutLayersInput
 }
 
 export type LayerCreateOrConnectWithoutFeaturesInput = {
@@ -570,31 +543,21 @@ export type LayerUpdateWithoutFeaturesInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  map?: Prisma.MapProjectUpdateOneRequiredWithoutLayersNestedInput
+  maps?: Prisma.MapProjectUpdateManyWithoutLayersNestedInput
 }
 
 export type LayerUncheckedUpdateWithoutFeaturesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  mapId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  maps?: Prisma.MapProjectUncheckedUpdateManyWithoutLayersNestedInput
 }
 
-export type LayerCreateManyMapInput = {
-  id?: string
-  name: string
-  iconUrl?: string | null
-  color?: string | null
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type LayerUpdateWithoutMapInput = {
+export type LayerUpdateWithoutMapsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -605,7 +568,7 @@ export type LayerUpdateWithoutMapInput = {
   features?: Prisma.FeatureUpdateManyWithoutLayerNestedInput
 }
 
-export type LayerUncheckedUpdateWithoutMapInput = {
+export type LayerUncheckedUpdateWithoutMapsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -616,7 +579,7 @@ export type LayerUncheckedUpdateWithoutMapInput = {
   features?: Prisma.FeatureUncheckedUpdateManyWithoutLayerNestedInput
 }
 
-export type LayerUncheckedUpdateManyWithoutMapInput = {
+export type LayerUncheckedUpdateManyWithoutMapsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   iconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -632,10 +595,12 @@ export type LayerUncheckedUpdateManyWithoutMapInput = {
  */
 
 export type LayerCountOutputType = {
+  maps: number
   features: number
 }
 
 export type LayerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  maps?: boolean | LayerCountOutputTypeCountMapsArgs
   features?: boolean | LayerCountOutputTypeCountFeaturesArgs
 }
 
@@ -652,6 +617,13 @@ export type LayerCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
 /**
  * LayerCountOutputType without action
  */
+export type LayerCountOutputTypeCountMapsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MapProjectWhereInput
+}
+
+/**
+ * LayerCountOutputType without action
+ */
 export type LayerCountOutputTypeCountFeaturesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.FeatureWhereInput
 }
@@ -659,14 +631,13 @@ export type LayerCountOutputTypeCountFeaturesArgs<ExtArgs extends runtime.Types.
 
 export type LayerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  mapId?: boolean
   name?: boolean
   iconUrl?: boolean
   color?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  map?: boolean | Prisma.MapProjectDefaultArgs<ExtArgs>
+  maps?: boolean | Prisma.Layer$mapsArgs<ExtArgs>
   features?: boolean | Prisma.Layer$featuresArgs<ExtArgs>
   _count?: boolean | Prisma.LayerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["layer"]>
@@ -675,7 +646,6 @@ export type LayerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 
 export type LayerSelectScalar = {
   id?: boolean
-  mapId?: boolean
   name?: boolean
   iconUrl?: boolean
   color?: boolean
@@ -684,9 +654,9 @@ export type LayerSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LayerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "mapId" | "name" | "iconUrl" | "color" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["layer"]>
+export type LayerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "iconUrl" | "color" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["layer"]>
 export type LayerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  map?: boolean | Prisma.MapProjectDefaultArgs<ExtArgs>
+  maps?: boolean | Prisma.Layer$mapsArgs<ExtArgs>
   features?: boolean | Prisma.Layer$featuresArgs<ExtArgs>
   _count?: boolean | Prisma.LayerCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -694,12 +664,11 @@ export type LayerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type $LayerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Layer"
   objects: {
-    map: Prisma.$MapProjectPayload<ExtArgs>
+    maps: Prisma.$MapProjectPayload<ExtArgs>[]
     features: Prisma.$FeaturePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    mapId: string
     name: string
     iconUrl: string | null
     color: string | null
@@ -1046,7 +1015,7 @@ readonly fields: LayerFieldRefs;
  */
 export interface Prisma__LayerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  map<T extends Prisma.MapProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MapProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__MapProjectClient<runtime.Types.Result.GetResult<Prisma.$MapProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  maps<T extends Prisma.Layer$mapsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Layer$mapsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MapProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   features<T extends Prisma.Layer$featuresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Layer$featuresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeaturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1078,7 +1047,6 @@ export interface Prisma__LayerClient<T, Null = never, ExtArgs extends runtime.Ty
  */
 export interface LayerFieldRefs {
   readonly id: Prisma.FieldRef<"Layer", 'String'>
-  readonly mapId: Prisma.FieldRef<"Layer", 'String'>
   readonly name: Prisma.FieldRef<"Layer", 'String'>
   readonly iconUrl: Prisma.FieldRef<"Layer", 'String'>
   readonly color: Prisma.FieldRef<"Layer", 'String'>
@@ -1430,6 +1398,30 @@ export type LayerDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Layers to delete.
    */
   limit?: number
+}
+
+/**
+ * Layer.maps
+ */
+export type Layer$mapsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MapProject
+   */
+  select?: Prisma.MapProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MapProject
+   */
+  omit?: Prisma.MapProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MapProjectInclude<ExtArgs> | null
+  where?: Prisma.MapProjectWhereInput
+  orderBy?: Prisma.MapProjectOrderByWithRelationInput | Prisma.MapProjectOrderByWithRelationInput[]
+  cursor?: Prisma.MapProjectWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MapProjectScalarFieldEnum | Prisma.MapProjectScalarFieldEnum[]
 }
 
 /**

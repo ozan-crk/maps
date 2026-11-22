@@ -6,9 +6,8 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const mapId = url.searchParams.get("mapId");
     
-    console.log("DATABASE_URL in API route:", process.env.DATABASE_URL);
     const layers = await prisma.layer.findMany({
-      where: mapId ? { mapId } : undefined,
+      where: mapId ? { maps: { some: { id: mapId } } } : undefined,
       orderBy: { createdAt: "asc" },
       include: {
         features: {
@@ -28,11 +27,11 @@ export async function POST(req: Request) {
     const data = await req.json();
     const layer = await prisma.layer.create({
       data: {
-        mapId: data.mapId,
         name: data.name,
         iconUrl: data.iconUrl,
         color: data.color,
         isActive: data.isActive ?? true,
+        maps: data.mapId ? { connect: { id: data.mapId } } : undefined,
       },
     });
     return NextResponse.json(layer);
