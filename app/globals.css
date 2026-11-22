@@ -1,3 +1,4 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 @import 'leaflet/dist/leaflet.css';
 
 :root {
@@ -138,12 +139,47 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-/* Özel Ayırt Edici Harita Pinleri Stilleri */
-.custom-distinct-pin-marker {
+
+/* Özel Ayırt Edici Harita Pinleri Stilleri (maps22 ile Birebir Aynı) */
+.custom-distinct-pin-marker,
+.custom-pin-wrapper {
   background: transparent !important;
   border: none !important;
 }
-.custom-distinct-pin-marker:hover > div {
-  transform: rotate(-45deg) scale(1.18) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+
+.custom-map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  border: 2px solid #ffffff;
+}
+
+.custom-map-pin:hover {
+  transform: rotate(-45deg) scale(1.25);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  z-index: 1000 !important;
+}
+
+.custom-map-pin i {
+  transform: rotate(45deg);
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.custom-map-pin::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  bottom: -6px;
+  left: -2px;
 }
