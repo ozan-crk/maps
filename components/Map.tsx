@@ -1,35 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, CircleMarker, FeatureGroup, LayersControl, useMapEvents } from "react-leaflet";
+import { useEffect, useState, useMemo, useRef } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Popup,
+  Polygon,
+  FeatureGroup,
+  LayersControl,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-draw/dist/leaflet.draw.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
+import "leaflet.markercluster";
 import { EditControl } from "react-leaflet-draw";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
-
-type FeatureType = {
+export interface FeatureType {
   id: string;
   layerId: string;
   title: string;
-  description: string | null;
+  description?: string | null;
   iconUrl?: string | null;
   type: string;
   coordinates: string;
   layer?: {
-    id?: string | null;
-    name?: string | null;
+    id: string;
+    name: string;
     color?: string | null;
-    iconUrl?: string | null;
   };
-};
+}
 
 interface MapProps {
   features: FeatureType[];
@@ -39,9 +49,9 @@ interface MapProps {
 }
 
 function ZoomHandler({ onZoom }: { onZoom: (zoom: number) => void }) {
-  useMapEvents({
-    zoomend: (e) => {
-      onZoom(e.target.getZoom());
+  const map = useMapEvents({
+    zoomend: () => {
+      onZoom(map.getZoom());
     },
   });
   return null;
@@ -50,22 +60,20 @@ function ZoomHandler({ onZoom }: { onZoom: (zoom: number) => void }) {
 function getPolygonCenter(coords: any): [number, number] | null {
   try {
     let points: [number, number][] = [];
-    const extractPoints = (arr: any) => {
-      if (!Array.isArray(arr)) return;
-      if (arr.length >= 2 && typeof arr[0] === "number" && typeof arr[1] === "number") {
-        points.push([arr[0], arr[1]]);
-      } else {
-        arr.forEach(extractPoints);
+    if (Array.isArray(coords) && coords.length > 0) {
+      if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+        points = coords[0];
+      } else if (Array.isArray(coords[0])) {
+        points = coords;
       }
-    };
-    extractPoints(coords);
-
+    }
     if (points.length === 0) return null;
+
     let sumLat = 0;
     let sumLng = 0;
-    points.forEach(([lat, lng]) => {
-      sumLat += lat;
-      sumLng += lng;
+    points.forEach((p) => {
+      sumLat += p[0];
+      sumLng += p[1];
     });
     return [sumLat / points.length, sumLng / points.length];
   } catch {
@@ -73,159 +81,98 @@ function getPolygonCenter(coords: any): [number, number] | null {
   }
 }
 
-// Orijinal Ekoloji Enstitüsü & Umut-Sen & MEYDİP Renk ve İkon Motoru
 function getIconAndColor(feature: FeatureType): { iconClass: string; color: string; label: string } {
-  const layerId = (feature.layerId || feature.layer?.id || "").toLowerCase();
+  const title = (feature.title || "").toLowerCase();
+  const desc = (feature.description || "").toLowerCase();
   const layerName = (feature.layer?.name || "").toLowerCase();
-  const title = (feature.title || "");
-  const desc = (feature.description || "");
-  const combined = (title + " " + desc).toUpperCase();
+  const layerColor = feature.layer?.color;
 
-  // ==========================================
-  // 1. ÇED MADEN PROJELERİ (Orijinal Ekoloji Enstitüsü Renk Paleti)
-  // ==========================================
-  if (layerId.includes("ekst_ced") || layerName.includes("çed")) {
-    if (combined.includes("ÇED OLUMLU") && !combined.includes("GEREKLİ DEĞİL")) {
-      return { iconClass: "fa-circle-check", color: "#991b1b", label: "ÇED Olumlu (Nihai Onay)" };
+  if (feature.layerId === "layer_ekst_ced" || layerName.includes("çed")) {
+    if (desc.includes("çed olumlu")) {
+      return { iconClass: "fa-circle-exclamation", color: "#991b1b", label: "ÇED Olumlu" };
     }
-    if (combined.includes("ÇED GEREKLİ DEĞİL")) {
-      return { iconClass: "fa-circle-exclamation", color: "#dc2626", label: "ÇED Gerekli Değil / Olumlu" };
+    if (desc.includes("çed gerekli değildir")) {
+      return { iconClass: "fa-triangle-exclamation", color: "#dc2626", label: "ÇED Gerekli Değil" };
     }
-    if (combined.includes("NİHAİ KARAR")) {
-      return { iconClass: "fa-gavel", color: "#f87171", label: "Bakanlık Nihai Karar Aşamasında" };
+    if (desc.includes("nihai")) {
+      return { iconClass: "fa-hourglass-end", color: "#f87171", label: "Nihai ÇED" };
     }
-    if (combined.includes("İDK")) {
-      return { iconClass: "fa-users-gear", color: "#ea580c", label: "İDK Komisyon İncelemesinde" };
+    if (desc.includes("idk")) {
+      return { iconClass: "fa-users-gear", color: "#ea580c", label: "İDK Toplantısı" };
     }
-    if (combined.includes("HKT")) {
-      return { iconClass: "fa-bullhorn", color: "#fb923c", label: "Halkın Katılımı Toplantısı (HKT)" };
+    if (desc.includes("hkt") || desc.includes("halkın")) {
+      return { iconClass: "fa-bullhorn", color: "#fb923c", label: "HKT Toplantısı" };
     }
-    if (combined.includes("ÇED SÜRECİ BAŞLAYAN")) {
-      return { iconClass: "fa-hourglass-start", color: "#fdba74", label: "ÇED Süreci Başlayan" };
+    if (desc.includes("süreç başla") || desc.includes("başvuru")) {
+      return { iconClass: "fa-clock", color: "#fdba74", label: "Süreç Başladı" };
     }
-    if (combined.includes("ÇED GEREKLİ") || combined.includes("RAPORU HAZIRLANMALIDIR")) {
-      return { iconClass: "fa-file-lines", color: "#eab308", label: "Tam ÇED Raporu Hazırlanmalı" };
+    if (desc.includes("rapor")) {
+      return { iconClass: "fa-file-lines", color: "#eab308", label: "ÇED Raporu" };
     }
-    if (combined.includes("İPTAL") || combined.includes("İADE")) {
-      return { iconClass: "fa-ban", color: "#4ade80", label: "ÇED Başvurusu İptal / İade Edildi" };
+    if (desc.includes("iptal")) {
+      return { iconClass: "fa-circle-check", color: "#4ade80", label: "İptal Edildi" };
     }
-    if (combined.includes("ÇED OLUMSUZ")) {
-      return { iconClass: "fa-circle-xmark", color: "#16a34a", label: "ÇED Olumsuz (Maden Durduruldu)" };
+    if (desc.includes("olumsuz")) {
+      return { iconClass: "fa-ban", color: "#16a34a", label: "ÇED Olumsuz" };
     }
-    return { iconClass: "fa-flask", color: "#dc2626", label: "ÇED Maden Projesi" };
+    return { iconClass: "fa-industry", color: "#dc2626", label: "ÇED Maden" };
   }
 
-  // ==========================================
-  // 2. MADEN İHALE ALANLARI (MAPEG - Satılan / Satılmayan)
-  // ==========================================
-  if (layerId.includes("ekst_ihaleler") || layerName.includes("ihale")) {
-    if (combined.includes("İŞLETME RUHSATI") || combined.includes("ARAMA RUHSATI") || combined.includes("SATIL")) {
-      return { iconClass: "fa-hammer", color: "#9333ea", label: "İhalede Satılan Maden Sahası" };
-    }
-    return { iconClass: "fa-hammer", color: "#e11d48", label: "Maden İhale Sahası" };
+  if (feature.layerId === "layer_ekst_ihaleler" || layerName.includes("ihale")) {
+    return { iconClass: "fa-gavel", color: "#ea580c", label: "Maden İhalesi" };
   }
-
-  // ==========================================
-  // 3. TAŞINMAZ / KAMULAŞTIRMA / RUHSAT KARARLARI
-  // ==========================================
-  if (layerId.includes("ekst_tasinmaz") || layerName.includes("taşınmaz")) {
-    if (combined.includes("İŞLETME RUHSATI")) {
-      return { iconClass: "fa-file-contract", color: "#2563eb", label: "İşletme Ruhsatı Talebi" };
-    }
-    if (combined.includes("ARAMA RUHSATI")) {
-      return { iconClass: "fa-file-signature", color: "#0284c7", label: "Arama Ruhsatı Talebi" };
-    }
-    if (combined.includes("İHALE")) {
-      return { iconClass: "fa-gavel", color: "#9333ea", label: "İhale Kararı" };
-    }
-    if (combined.includes("DEVİR")) {
-      return { iconClass: "fa-right-left", color: "#059669", label: "Ruhsat Devir Kararı" };
-    }
-    if (combined.includes("TEMDİT")) {
-      return { iconClass: "fa-clock-rotate-left", color: "#d97706", label: "Ruhsat Temdit (Uzatma)" };
-    }
-    return { iconClass: "fa-file-contract", color: "#337ab7", label: "Taşınmaz / Kamulaştırma Kararı" };
+  if (feature.layerId === "layer_ekst_tasinmaz" || layerName.includes("taşınmaz") || layerName.includes("kamulaştırma")) {
+    return { iconClass: "fa-house-circle-exclamation", color: "#8b5cf6", label: "Acele Kamulaştırma" };
   }
-
-  // ==========================================
-  // 4. DOĞA KORUMA ALANLARI, SU HAVZALARI & TAŞ OCAKLARI
-  // ==========================================
-  if (layerId.includes("ekst_dkmp") || layerName.includes("milli park") || layerName.includes("koruma")) {
-    return { iconClass: "fa-tree", color: "#16a34a", label: "Milli Park & Doğa Koruma (DKMP)" };
+  if (feature.layerId === "layer_ekst_dkmp" || layerName.includes("korunan") || layerName.includes("milli park")) {
+    return { iconClass: "fa-shield-halved", color: "#059669", label: "Korunan Alan (DKMP)" };
   }
-  if (layerId.includes("ekst_kba") || layerName.includes("önemli doğa")) {
-    return { iconClass: "fa-leaf", color: "#10b981", label: "Önemli Doğa Alanı (KBA)" };
+  if (feature.layerId === "layer_ekst_kba" || layerName.includes("doğa alanı") || layerName.includes("kba")) {
+    return { iconClass: "fa-tree", color: "#10b981", label: "Önemli Doğa Alanı" };
   }
-  if (layerId.includes("ekst_havzalar") || layerName.includes("havza")) {
+  if (feature.layerId === "layer_ekst_havzalar" || layerName.includes("havza")) {
     return { iconClass: "fa-water", color: "#0284c7", label: "Su Havzası" };
   }
-  if (layerId.includes("ekst_quarries") || layerName.includes("ocak")) {
-    return { iconClass: "fa-mountain", color: "#d97706", label: "Maden & Taş Ocağı" };
+  if (feature.layerId === "layer_ekst_quarries" || layerName.includes("taş oca") || layerName.includes("quarr")) {
+    return { iconClass: "fa-mountain", color: "#d97706", label: "Taş Ocağı / Maden" };
   }
 
-  // ==========================================
-  // 5. UMUT-SEN DİRENİŞ KATMANLARI
-  // ==========================================
-  const lowerLayer = layerName.toLowerCase();
-  const lowerTitle = title.toLowerCase();
-  const lowerDesc = desc.toLowerCase();
-
-  if (layerId.includes("isci") || lowerLayer.includes("işçi") || lowerTitle.includes("grev") || lowerTitle.includes("işçi") || lowerDesc.includes("grev")) {
-    return { iconClass: "fa-fist-raised", color: "#dc2626", label: "İşçi Direnişi / Grev" };
+  if (layerName.includes("direniş") || title.includes("direniş") || desc.includes("direniş")) {
+    return { iconClass: "fa-fist-raised", color: layerColor || "#ef4444", label: "İşçi & Ekoloji Direnişi" };
   }
-  if (layerId.includes("ekoloji") || lowerLayer.includes("ekoloji") || lowerTitle.includes("maden") || lowerTitle.includes("orman") || lowerTitle.includes("jes") || lowerDesc.includes("ekoloji")) {
-    return { iconClass: "fa-leaf", color: "#16a34a", label: "Ekoloji Mücadelesi" };
+  if (layerName.includes("hukuk") || layerName.includes("dava")) {
+    return { iconClass: "fa-scale-balanced", color: layerColor || "#3b82f6", label: "Hukuki Süreç" };
   }
-  if (layerId.includes("cinayet") || lowerLayer.includes("cinayet") || lowerTitle.includes("katliam") || lowerTitle.includes("cinayeti") || lowerDesc.includes("iş cinayeti")) {
-    return { iconClass: "fa-scale-balanced", color: "#1e293b", label: "İş Cinayeti Davası" };
+  if (layerName.includes("çevre") || layerName.includes("ekoloji")) {
+    return { iconClass: "fa-leaf", color: layerColor || "#10b981", label: "Çevre Mücadelesi" };
   }
-  if (layerId.includes("hapishane") || lowerLayer.includes("hapishane") || lowerTitle.includes("açlık grevi") || lowerTitle.includes("mahpus") || lowerDesc.includes("hapishane")) {
-    return { iconClass: "fa-lock", color: "#ea580c", label: "Hapishane Direnişi" };
-  }
-  if (layerId.includes("kayip") || lowerLayer.includes("kayıp") || lowerTitle.includes("anneleri") || lowerTitle.includes("adalet") || lowerDesc.includes("kayıp")) {
-    return { iconClass: "fa-heart", color: "#9333ea", label: "Kayıp Yakınları / Adalet" };
+  if (layerName.includes("grev") || desc.includes("grev")) {
+    return { iconClass: "fa-hand-back-fist", color: layerColor || "#f59e0b", label: "Grev & Eylem" };
   }
 
-  // ==========================================
-  // 6. SANAYİ VE OSB KATMANLARI
-  // ==========================================
-  if (layerId.includes("osb") || lowerLayer.includes("organize") || lowerLayer.includes("osb") || lowerTitle.includes("osb")) {
-    return { iconClass: "fa-industry", color: "#2563eb", label: "Organize Sanayi Bölgesi" };
-  }
-  if (layerId.includes("tgb") || lowerLayer.includes("teknoloji") || lowerLayer.includes("tgb") || lowerTitle.includes("teknokent")) {
-    return { iconClass: "fa-flask", color: "#7c3aed", label: "Teknoloji Geliştirme Bölgesi" };
-  }
-  if (layerId.includes("eb") || lowerLayer.includes("endüstri") || lowerLayer.includes("eb")) {
-    return { iconClass: "fa-warehouse", color: "#059669", label: "Endüstri Bölgesi" };
-  }
-  if (layerId.includes("ontahsis") || lowerLayer.includes("tahsis")) {
-    return { iconClass: "fa-drafting-compass", color: "#d97706", label: "Ön Tahsis Alanı" };
-  }
-  if (layerId.includes("yatirim") || lowerLayer.includes("yatırım")) {
-    return { iconClass: "fa-briefcase", color: "#0284c7", label: "Yatırım Alanı" };
-  }
-
-  const defaultColor = feature.layer?.color || "#3b82f6";
-  return { iconClass: "fa-map-pin", color: defaultColor, label: feature.layer?.name || "Konum" };
+  return { iconClass: "fa-location-dot", color: layerColor || "#6366f1", label: feature.layer?.name || "Konum" };
 }
 
-// FontAwesome İkonlu Damla Pin (Direniş ve Sanayi için)
 function createDistinctPin(color: string, iconClass: string) {
   return L.divIcon({
-    className: "custom-distinct-pin-marker",
+    className: "custom-map-pin",
     html: `
-      <div class="custom-map-pin" style="background: ${color};">
+      <div class="pin-marker" style="background-color: ${color};">
         <i class="fa-solid ${iconClass}"></i>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -28],
   });
 }
 
-// Şık, Okunaklı ve Yapılandırılmış Popup İçeriği
-function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; color: string; label: string }) {
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function createPopupHtml(feature: FeatureType, color: string, label: string): string {
   const desc = feature.description || "";
   const hasPipes = desc.includes(" | ");
   const rows: { key: string; val: string }[] = [];
@@ -254,272 +201,319 @@ function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; 
     });
   }
 
-  return (
-    <div style={{ minWidth: "270px", maxWidth: "360px", padding: "6px 2px", color: "#f8fafc" }}>
-      {/* Kategori Rozeti */}
-      <div style={{
-        display: "inline-block",
-        padding: "3px 10px",
-        borderRadius: "6px",
-        fontSize: "11px",
-        fontWeight: "700",
-        color: "#ffffff",
-        background: color,
-        marginBottom: "8px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.3)"
-      }}>
-        {feature.layer?.name || label}
+  let rowsHtml = "";
+  if (rows.length > 0) {
+    rowsHtml = `
+      <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
+        ${rows
+          .map(
+            (r, i) => `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 4px 6px; background-color: ${
+            i % 2 === 0 ? "rgba(255, 255, 255, 0.05)" : "transparent"
+          }; border-radius: 4px; font-size: 11.5px; line-height: 1.35;">
+            ${r.key ? `<span style="color: #cbd5e1; font-weight: 500; margin-right: 8px;">${escapeHtml(r.key)}:</span>` : ""}
+            <span style="color: #ffffff; font-weight: 600; text-align: right; word-break: break-word;">${escapeHtml(r.val)}</span>
+          </div>
+        `
+          )
+          .join("")}
       </div>
+    `;
+  } else if (desc && !hasPipes) {
+    rowsHtml = `<div style="font-size: 12px; color: #f1f5f9; line-height: 1.5; margin-bottom: 8px;">${escapeHtml(desc)}</div>`;
+  }
 
-      {/* Başlık */}
-      <h3 style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: "700", color: "#ffffff", lineHeight: "1.35" }}>
-        {feature.title}
+  let notesHtml = "";
+  if (detailedNotes) {
+    notesHtml = `
+      <div style="margin-top: 6px; padding: 8px 10px; background-color: rgba(15, 23, 42, 0.7); border-left: 3px solid ${color}; border-radius: 0 4px 4px 0; font-size: 11.5px; color: #e2e8f0; line-height: 1.45;">
+        ${escapeHtml(detailedNotes)}
+      </div>
+    `;
+  }
+
+  return `
+    <div style="min-width: 270px; max-width: 360px; padding: 6px 2px; color: #f8fafc; font-family: inherit;">
+      <div style="display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #ffffff; background-color: ${color}; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        ${escapeHtml(label)}
+      </div>
+      <h3 style="margin: 0 0 10px 0; font-size: 15px; font-weight: 700; color: #ffffff; line-height: 1.3; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 6px;">
+        ${escapeHtml(feature.title || "Detay")}
       </h3>
-
-      {/* Yapılandırılmış Bilgi Satırları */}
-      {hasPipes ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px" }}>
-          {rows.map((r, i) => (
-            <div key={i} style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "10px",
-              paddingBottom: "5px",
-              borderBottom: "1px solid rgba(255,255,255,0.08)"
-            }}>
-              {r.key ? (
-                <>
-                  <span style={{ color: "#94a3b8", fontWeight: "500", whiteSpace: "nowrap" }}>{r.key}:</span>
-                  <span style={{
-                    color: r.key.toLowerCase().includes("durum") ? (r.val.toLowerCase().includes("olumsuz") || r.val.toLowerCase().includes("iptal") ? "#4ade80" : "#f87171") : "#f1f5f9",
-                    fontWeight: "600",
-                    textAlign: "right"
-                  }}>
-                    {r.val}
-                  </span>
-                </>
-              ) : (
-                <span style={{ color: "#cbd5e1" }}>{r.val}</span>
-              )}
-            </div>
-          ))}
-
-          {detailedNotes && (
-            <div style={{
-              marginTop: "6px",
-              background: "rgba(255, 255, 255, 0.06)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderRadius: "8px",
-              padding: "9px 11px",
-              fontSize: "12px",
-              color: "#e2e8f0",
-              lineHeight: "1.45"
-            }}>
-              <span style={{ color: "#93c5fd", fontWeight: "700", display: "block", marginBottom: "4px" }}>
-                {detailedNotes.split(":")[0]}:
-              </span>
-              <span style={{ color: "#cbd5e1" }}>{detailedNotes.substring(detailedNotes.indexOf(":") + 1).trim()}</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <p style={{ margin: 0, fontSize: "13px", color: "#cbd5e1", lineHeight: "1.55" }}>
-          {desc || "Açıklama bulunmuyor."}
-        </p>
-      )}
+      ${rowsHtml}
+      ${notesHtml}
     </div>
-  );
+  `;
+}
+
+// 60 FPS Asenkron MarkerCluster Katmanı
+function MarkerClusterLayer({ features }: { features: FeatureType[] }) {
+  const map = useMap();
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+
+  useEffect(() => {
+    if (!map || typeof window === "undefined") return;
+
+    if (clusterGroupRef.current) {
+      map.removeLayer(clusterGroupRef.current);
+      clusterGroupRef.current.clearLayers();
+    }
+
+    const clusterGroup = L.markerClusterGroup({
+      chunkedLoading: true,
+      chunkInterval: 40,
+      chunkDelay: 20,
+      maxClusterRadius: 55,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      removeOutsideVisibleBounds: true,
+      disableClusteringAtZoom: 16,
+      iconCreateFunction: function (cluster) {
+        const count = cluster.getChildCount();
+        let sizeClass = "cluster-small";
+        let size = 38;
+        if (count >= 1000) {
+          sizeClass = "cluster-large";
+          size = 52;
+        } else if (count >= 100) {
+          sizeClass = "cluster-medium";
+          size = 44;
+        }
+        const displayCount = count >= 10000 ? (count / 1000).toFixed(1) + "k" : count.toLocaleString("tr-TR");
+        return L.divIcon({
+          html: `<div class="modern-cluster-bubble ${sizeClass}"><span>${displayCount}</span></div>`,
+          className: "modern-cluster-wrapper",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+      },
+    });
+
+    const markers: L.Marker[] = [];
+
+    features.forEach((feature) => {
+      let coords: [number, number] | null = null;
+      if (feature.type === "POINT") {
+        try {
+          coords = JSON.parse(feature.coordinates);
+        } catch {
+          coords = null;
+        }
+      } else if (feature.type === "POLYGON") {
+        try {
+          const polyCoords = JSON.parse(feature.coordinates);
+          coords = getPolygonCenter(polyCoords);
+        } catch {
+          coords = null;
+        }
+      }
+
+      if (!coords || !Array.isArray(coords) || coords.length < 2) return;
+
+      const { iconClass, color, label } = getIconAndColor(feature);
+      const icon = createDistinctPin(color, iconClass);
+      const marker = L.marker(coords, { icon });
+      const popupHtml = createPopupHtml(feature, color, label);
+      marker.bindPopup(popupHtml, { maxWidth: 360 });
+      markers.push(marker);
+    });
+
+    clusterGroup.addLayers(markers);
+    map.addLayer(clusterGroup);
+    clusterGroupRef.current = clusterGroup;
+
+    return () => {
+      if (clusterGroupRef.current) {
+        map.removeLayer(clusterGroupRef.current);
+        clusterGroupRef.current = null;
+      }
+    };
+  }, [map, features]);
+
+  return null;
 }
 
 export default function Map({ features, isAdmin, onFeatureCreated, selectedLayerId }: MapProps) {
   const [currentZoom, setCurrentZoom] = useState(6);
-  const ZOOM_THRESHOLD = 10;
+  const [selectedCity, setSelectedCity] = useState<string>("ALL");
 
-  // Performans Optimizasyonu: Çok sayıda nokta (> 500) varsa Canvas CircleMarker kullanarak 60 FPS hız sağla
-  const isHighDensity = features.length > 500;
+  // İlleri description alanındaki 'il: İSİM' kalıbından otomatik toparla
+  const cityList = useMemo(() => {
+    const cityCounts: Record<string, number> = {};
+    features.forEach((f) => {
+      const desc = f.description || "";
+      const m = desc.match(/il:\s*([^|\n]+)/i);
+      if (m && m[1]) {
+        const cityName = m[1].trim().toUpperCase();
+        if (cityName.length >= 2 && cityName.length <= 25) {
+          cityCounts[cityName] = (cityCounts[cityName] || 0) + 1;
+        }
+      }
+    });
+    return Object.entries(cityCounts)
+      .sort((a, b) => b[1] - a[1]) // En çok kaydı olandan aza doğru
+      .map(([name, count]) => ({ name, count }));
+  }, [features]);
 
-  const onCreated = (e: any) => {
+  // İl Filtresi uygulanmış feature listesi
+  const filteredFeatures = useMemo(() => {
+    if (selectedCity === "ALL") return features;
+    return features.filter((f) => {
+      const desc = (f.description || "").toUpperCase();
+      return desc.includes(`IL: ${selectedCity}`) || desc.includes(`IL:${selectedCity}`);
+    });
+  }, [features, selectedCity]);
+
+  // Çizim aracıyla yeni kayıt oluşturma
+  const _handleCreated = (e: any) => {
+    if (!onFeatureCreated) return;
     const { layerType, layer } = e;
+    let type = "POINT";
+    let coordinates: any = "";
+
     if (layerType === "marker") {
-      const latlng = layer.getLatLng();
-      if (onFeatureCreated) onFeatureCreated("POINT", [latlng.lat, latlng.lng]);
+      type = "POINT";
+      const { lat, lng } = layer.getLatLng();
+      coordinates = [lat, lng];
     } else if (layerType === "polygon") {
-      const latlngs = layer.getLatLngs()[0];
-      const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
-      if (onFeatureCreated) onFeatureCreated("POLYGON", coords);
+      type = "POLYGON";
+      const latlngs = layer.getLatLngs()[0].map((ll: any) => [ll.lat, ll.lng]);
+      latlngs.push(latlngs[0]);
+      coordinates = [latlngs];
     } else if (layerType === "polyline") {
-      const latlngs = layer.getLatLngs();
-      const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
-      if (onFeatureCreated) onFeatureCreated("LINESTRING", coords);
+      type = "LINESTRING";
+      coordinates = layer.getLatLngs().map((ll: any) => [ll.lat, ll.lng]);
     }
-    layer.remove();
+
+    onFeatureCreated(type, coordinates);
   };
 
   return (
-    <MapContainer center={[39.0, 35.2]} zoom={6} preferCanvas={true} style={{ height: "100%", width: "100%" }}>
-      <ZoomHandler onZoom={setCurrentZoom} />
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      {/* Şık İl Seçici ve İstatistik Rozeti (Harita Üzerinde Floating Bar) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "14px",
+          right: "14px",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          backgroundColor: "rgba(15, 23, 42, 0.85)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.15)",
+          borderRadius: "12px",
+          padding: "6px 12px",
+          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: 600, display: "flex", alignItems: "center", gap: "5px" }}>
+          <i className="fa-solid fa-location-dot" style={{ color: "#38bdf8" }}></i> İl:
+        </span>
+        <select
+          value={selectedCity}
+          onChange={(e) => setSelectedCity(e.target.value)}
+          style={{
+            backgroundColor: "rgba(30, 41, 59, 0.9)",
+            color: "#f8fafc",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "8px",
+            padding: "5px 10px",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+            outline: "none",
+          }}
+        >
+          <option value="ALL">🇹🇷 Tüm Türkiye ({features.length.toLocaleString("tr-TR")} Alan)</option>
+          {cityList.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.name} ({c.count.toLocaleString("tr-TR")})
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Standart Harita (OpenStreetMap)">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={19}
-          />
-        </LayersControl.BaseLayer>
+      <MapContainer
+        center={[39.0, 35.2]}
+        zoom={6}
+        preferCanvas={true}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <ZoomHandler onZoom={setCurrentZoom} />
 
-        <LayersControl.BaseLayer name="Uydu Görünümü (Esri Satellite)">
-          <TileLayer
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and GIS User Community'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={18}
-          />
-        </LayersControl.BaseLayer>
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Koyu Harita (CartoDB Dark)">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Uydu Görüntüsü (Esri)">
+            <TileLayer
+              attribution="Tiles &copy; Esri"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Sokak Haritası (OSM)">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
 
-        <LayersControl.BaseLayer name="Topografik (OpenTopoMap)">
-          <TileLayer
-            attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
-            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-            maxZoom={17}
-          />
-        </LayersControl.BaseLayer>
-      </LayersControl>
+        {isAdmin && (
+          <FeatureGroup>
+            <EditControl
+              position="topright"
+              onCreated={_handleCreated}
+              draw={{
+                rectangle: false,
+                circle: false,
+                circlemarker: false,
+                marker: true,
+                polygon: true,
+                polyline: true,
+              }}
+            />
+          </FeatureGroup>
+        )}
 
-      {isAdmin && selectedLayerId && (
-        <FeatureGroup>
-          <EditControl
-            position="topright"
-            onCreated={onCreated}
-            draw={{
-              rectangle: false,
-              circle: false,
-              circlemarker: false,
-              polyline: true,
-              polygon: true,
-              marker: true,
-            }}
-          />
-        </FeatureGroup>
-      )}
+        {/* 60 FPS Asenkron MarkerCluster Katmanı */}
+        <MarkerClusterLayer features={filteredFeatures} />
 
-      {features.map((feature) => {
-        let coords;
-        try {
-          coords = JSON.parse(feature.coordinates);
-        } catch (e) {
-          return null;
-        }
-
-        const { iconClass, color, label } = getIconAndColor(feature);
-
-        if (feature.type === "POINT") {
-          // Yüksek yoğunluklu katmanlar (ÇED, Taşınmaz 10.000+ nokta): GPU Canvas CircleMarker (SIFIR KASMA, 60 FPS)
-          if (isHighDensity) {
+        {/* Yakın Zoom Seviyesinde (>= 10) Poligon Sınırlarını da Detaylı Çiz */}
+        {currentZoom >= 10 &&
+          filteredFeatures.map((feature) => {
+            if (feature.type !== "POLYGON") return null;
+            let coords;
+            try {
+              coords = JSON.parse(feature.coordinates);
+            } catch {
+              return null;
+            }
+            const { color, label } = getIconAndColor(feature);
             return (
-              <CircleMarker
-                key={feature.id}
-                center={coords}
-                radius={currentZoom >= 11 ? 7 : 5}
+              <Polygon
+                key={`poly-${feature.id}`}
+                positions={coords}
                 pathOptions={{
+                  color: color,
                   fillColor: color,
-                  color: "#ffffff",
-                  weight: 1.2,
-                  fillOpacity: 0.9,
+                  fillOpacity: 0.35,
+                  weight: 2,
                 }}
               >
                 <Popup>
-                  <FeaturePopupContent feature={feature} color={color} label={label} />
+                  <div dangerouslySetInnerHTML={{ __html: createPopupHtml(feature, color, label) }} />
                 </Popup>
-              </CircleMarker>
+              </Polygon>
             );
-          }
-
-          // Düşük yoğunluklu katmanlar (Direniş Haritası vb.): Özel FontAwesome Damla Pin
-          const distinctPinIcon = createDistinctPin(color, iconClass);
-          return (
-            <Marker key={feature.id} position={coords} icon={distinctPinIcon}>
-              <Popup>
-                <FeaturePopupContent feature={feature} color={color} label={label} />
-              </Popup>
-            </Marker>
-          );
-        } else if (feature.type === "POLYGON") {
-          // Uzak Zoom (< 10)
-          if (currentZoom < ZOOM_THRESHOLD) {
-            const center = getPolygonCenter(coords);
-            if (!center) return null;
-
-            if (isHighDensity) {
-              return (
-                <CircleMarker
-                  key={`pin-${feature.id}`}
-                  center={center}
-                  radius={5}
-                  pathOptions={{
-                    fillColor: color,
-                    color: "#ffffff",
-                    weight: 1.2,
-                    fillOpacity: 0.85,
-                  }}
-                >
-                  <Popup>
-                    <div>
-                      <FeaturePopupContent feature={feature} color={color} label={label} />
-                      <small style={{ color: "#94a3b8", marginTop: "8px", display: "block" }}>
-                        🔍 Sınırları görmek için haritada yaklaşın
-                      </small>
-                    </div>
-                  </Popup>
-                </CircleMarker>
-              );
-            }
-
-            const distinctPinIcon = createDistinctPin(color, iconClass);
-            return (
-              <Marker key={`pin-${feature.id}`} position={center} icon={distinctPinIcon}>
-                <Popup>
-                  <div>
-                    <FeaturePopupContent feature={feature} color={color} label={label} />
-                    <small style={{ color: "#94a3b8", marginTop: "8px", display: "block" }}>
-                      🔍 Sınırları görmek için haritada yaklaşın
-                    </small>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          }
-
-          // Yakın Zoom (>= 10): Gerçek Poligon Sınır Alanı
-          return (
-            <Polygon
-              key={feature.id}
-              positions={coords}
-              pathOptions={{
-                color,
-                fillColor: color,
-                fillOpacity: 0.35,
-                weight: 1.5,
-              }}
-            >
-              <Popup>
-                <FeaturePopupContent feature={feature} color={color} label={label} />
-              </Popup>
-            </Polygon>
-          );
-        } else if (feature.type === "LINESTRING") {
-          return (
-            <Polyline key={feature.id} positions={coords} pathOptions={{ color, weight: 4 }}>
-              <Popup>
-                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold", color: "#ffffff" }}>{feature.title}</h3>
-                <p style={{ margin: 0, fontSize: "14px", color: "#cbd5e1" }}>{feature.description}</p>
-              </Popup>
-            </Polyline>
-          );
-        }
-
-        return null;
-      })}
-    </MapContainer>
+          })}
+      </MapContainer>
+    </div>
   );
 }
