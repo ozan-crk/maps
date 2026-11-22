@@ -166,6 +166,116 @@ function createDistinctPin(color: string, iconClass: string) {
   });
 }
 
+// Son derece şık, okunaklı, kontrastlı ve yapılandırılmış Popup İçeriği
+function FeaturePopupContent({ feature, color, label }: { feature: FeatureType; color: string; label: string }) {
+  const desc = feature.description || "";
+  const hasPipes = desc.includes(" | ");
+  const rows: { key: string; val: string }[] = [];
+  let detailedNotes = "";
+
+  if (hasPipes) {
+    const parts = desc.split(" | ");
+    parts.forEach((p) => {
+      const colIdx = p.indexOf(":");
+      if (colIdx !== -1) {
+        const k = p.substring(0, colIdx).trim();
+        const v = p.substring(colIdx + 1).trim();
+        if (
+          k.toLowerCase().includes("talep") ||
+          k.toLowerCase().includes("neden") ||
+          k.toLowerCase().includes("bilgi") ||
+          k.toLowerCase().includes("not")
+        ) {
+          detailedNotes = `${k}: ${v}`;
+        } else {
+          rows.push({ key: k, val: v });
+        }
+      } else {
+        rows.push({ key: "", val: p.trim() });
+      }
+    });
+  }
+
+  return (
+    <div style={{ minWidth: "270px", maxWidth: "360px", padding: "6px 2px", color: "#f8fafc" }}>
+      {/* Kategori Rozeti */}
+      <div style={{
+        display: "inline-block",
+        padding: "3px 10px",
+        borderRadius: "6px",
+        fontSize: "11px",
+        fontWeight: "700",
+        color: "#ffffff",
+        background: color,
+        marginBottom: "8px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.3)"
+      }}>
+        {feature.layer?.name || label}
+      </div>
+
+      {/* Başlık (Açık Beyaz, Tam Okunaklı) */}
+      <h3 style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: "700", color: "#ffffff", lineHeight: "1.35" }}>
+        {feature.title}
+      </h3>
+
+      {/* Yapılandırılmış Açıklama / Satırlar */}
+      {hasPipes ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px" }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "10px",
+              paddingBottom: "5px",
+              borderBottom: "1px solid rgba(255,255,255,0.08)"
+            }}>
+              {r.key ? (
+                <>
+                  <span style={{ color: "#94a3b8", fontWeight: "500", whiteSpace: "nowrap" }}>{r.key}:</span>
+                  <span style={{
+                    color: r.key.toLowerCase().includes("durum") ? "#10b981" : "#f1f5f9",
+                    fontWeight: "600",
+                    textAlign: "right"
+                  }}>
+                    {r.val}
+                  </span>
+                </>
+              ) : (
+                <span style={{ color: "#cbd5e1" }}>{r.val}</span>
+              )}
+            </div>
+          ))}
+
+          {/* Talepler / Notlar Bölümü */}
+          {detailedNotes && (
+            <div style={{
+              marginTop: "6px",
+              background: "rgba(255, 255, 255, 0.06)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              borderRadius: "8px",
+              padding: "9px 11px",
+              fontSize: "12px",
+              color: "#e2e8f0",
+              lineHeight: "1.45"
+            }}>
+              <span style={{ color: "#93c5fd", fontWeight: "700", display: "block", marginBottom: "4px" }}>
+                {detailedNotes.split(":")[0]}:
+              </span>
+              <span style={{ color: "#cbd5e1" }}>{detailedNotes.substring(detailedNotes.indexOf(":") + 1).trim()}</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Standart Açıklama Metni */
+        <p style={{ margin: 0, fontSize: "13px", color: "#cbd5e1", lineHeight: "1.55" }}>
+          {desc || "Açıklama bulunmuyor."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function Map({ features, isAdmin, onFeatureCreated, selectedLayerId }: MapProps) {
   const [currentZoom, setCurrentZoom] = useState(6);
   const ZOOM_THRESHOLD = 10;
@@ -249,26 +359,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
           return (
             <Marker key={feature.id} position={coords} icon={distinctPinIcon}>
               <Popup>
-                <div style={{ minWidth: "220px", padding: "4px" }}>
-                  <div style={{
-                    display: "inline-block",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    color: "#ffffff",
-                    background: color,
-                    marginBottom: "6px"
-                  }}>
-                    {feature.layer?.name || label}
-                  </div>
-                  <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: "bold", color: "#1e293b" }}>
-                    {feature.title}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.5" }}>
-                    {feature.description}
-                  </p>
-                </div>
+                <FeaturePopupContent feature={feature} color={color} label={label} />
               </Popup>
             </Marker>
           );
@@ -281,26 +372,9 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
             return (
               <Marker key={`pin-${feature.id}`} position={center} icon={distinctPinIcon}>
                 <Popup>
-                  <div style={{ minWidth: "220px", padding: "4px" }}>
-                    <div style={{
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                      color: "#ffffff",
-                      background: color,
-                      marginBottom: "6px"
-                    }}>
-                      {feature.layer?.name || label}
-                    </div>
-                    <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: "bold", color: "#1e293b" }}>
-                      {feature.title}
-                    </h3>
-                    <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.5" }}>
-                      {feature.description}
-                    </p>
-                    <small style={{ color: "#64748b", marginTop: "6px", display: "block" }}>
+                  <div>
+                    <FeaturePopupContent feature={feature} color={color} label={label} />
+                    <small style={{ color: "#94a3b8", marginTop: "8px", display: "block" }}>
                       🔍 Sınırları görmek için haritada yaklaşın
                     </small>
                   </div>
@@ -313,26 +387,7 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
           return (
             <Polygon key={feature.id} positions={coords} pathOptions={{ color, fillColor: color, fillOpacity: 0.4 }}>
               <Popup>
-                <div style={{ minWidth: "220px", padding: "4px" }}>
-                  <div style={{
-                    display: "inline-block",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    color: "#ffffff",
-                    background: color,
-                    marginBottom: "6px"
-                  }}>
-                    {feature.layer?.name || label}
-                  </div>
-                  <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: "bold", color: "#1e293b" }}>
-                    {feature.title}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: "13px", color: "#475569", lineHeight: "1.5" }}>
-                    {feature.description}
-                  </p>
-                </div>
+                <FeaturePopupContent feature={feature} color={color} label={label} />
               </Popup>
             </Polygon>
           );
@@ -340,8 +395,8 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
           return (
             <Polyline key={feature.id} positions={coords} pathOptions={{ color, weight: 5 }}>
               <Popup>
-                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold" }}>{feature.title}</h3>
-                <p style={{ margin: 0, fontSize: "14px" }}>{feature.description}</p>
+                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold", color: "#ffffff" }}>{feature.title}</h3>
+                <p style={{ margin: 0, fontSize: "14px", color: "#cbd5e1" }}>{feature.description}</p>
               </Popup>
             </Polyline>
           );
