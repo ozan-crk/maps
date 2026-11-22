@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup, LayersControl } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, FeatureGroup, LayersControl, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { EditControl } from "react-leaflet-draw";
 
@@ -37,14 +37,86 @@ interface MapProps {
   selectedLayerId?: string;
 }
 
+// Zoom seviyesini anlik takip eden bilesen
+function ZoomHandler({ onZoom }: { onZoom: (zoom: number) => void }) {
+  useMapEvents({
+    zoomend: (e) => {
+      onZoom(e.target.getZoom());
+    },
+  });
+  return null;
+}
+
+// Poligonun agirlik merkezini hesaplar
+function getPolygonCenter(coords: any): [number, number] | null {
+  try {
+    let points: [number, number][] = [];
+    const extractPoints = (arr: any) => {
+      if (!Array.isArray(arr)) return;
+      if (arr.length >= 2 && typeof arr[0] === "number" && typeof arr[1] === "number") {
+        points.push([arr[0], arr[1]]);
+      } else {
+        arr.forEach(extractPoints);
+      }
+    };
+    extractPoints(coords);
+
+    if (points.length === 0) return null;
+    let sumLat = 0;
+    let sumLng = 0;
+    points.forEach(([lat, lng]) => {
+      sumLat += lat;
+      sumLng += lng;
+    });
+    return [sumLat / points.length, sumLng / points.length];
+  } catch {
+    return null;
+  }
+}
+
+// Katman rengine gore modern pin ikonu uretir
+function createPinIcon(color: string = "#3b82f6") {
+  return L.divIcon({
+    className: "custom-polygon-pin",
+    html: `
+      <div style="
+        background: ${color};
+        width: 26px;
+        height: 26px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 2px solid #ffffff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      ">
+        <div style="
+          width: 8px;
+          height: 8px;
+          background: #ffffff;
+          border-radius: 50%;
+        "></div>
+      </div>
+    `,
+    iconSize: [26, 26],
+    iconAnchor: [13, 26],
+    popupAnchor: [0, -26],
+  });
+}
+
 export default function Map({ features, isAdmin, onFeatureCreated, selectedLayerId }: MapProps) {
+  const [currentZoom, setCurrentZoom] = useState(6);
+  const ZOOM_THRESHOLD = 10; // Zoom < 10: Pin, Zoom >= 10: Alan (Polygon)
+
   const onCreated = (e: any) => {
     const { layerType, layer } = e;
     if (layerType === "marker") {
       const latlng = layer.getLatLng();
       if (onFeatureCreated) onFeatureCreated("POINT", [latlng.lat, latlng.lng]);
     } else if (layerType === "polygon") {
-      const latlngs = layer.getLatLngs()[0]; // Outer ring
+      const latlngs = layer.getLatLngs()[0];
       const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
       if (onFeatureCreated) onFeatureCreated("POLYGON", coords);
     } else if (layerType === "polyline") {
@@ -52,12 +124,13 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
       const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
       if (onFeatureCreated) onFeatureCreated("LINESTRING", coords);
     }
-    // Remove the drawn layer from the map so it can be re-rendered via features prop
     layer.remove();
   };
 
   return (
     <MapContainer center={[39.92077, 32.85411]} zoom={6} style={{ height: "100%", width: "100%" }}>
+      <ZoomHandler onZoom={setCurrentZoom} />
+
       <LayersControl position="topright">
         <LayersControl.BaseLayer checked name="Standart Harita (OpenStreetMap)">
           <TileLayer
@@ -112,11 +185,11 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
         const iconUrl = feature.iconUrl || feature.layer?.iconUrl;
         const customIcon = iconUrl
           ? new L.Icon({
-              iconUrl: iconUrl,
-              iconSize: [32, 32],
-              iconAnchor: [16, 32],
-              popupAnchor: [0, -32],
-            })
+            iconUrl: iconUrl,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          })
           : new L.Icon.Default();
 
         const color = feature.layer?.color || "#3b82f6";
@@ -131,10 +204,28 @@ export default function Map({ features, isAdmin, onFeatureCreated, selectedLayer
             </Marker>
           );
         } else if (feature.type === "POLYGON") {
+          // Uzakta iken Pin, yakinda iken Alan goster
+          if (currentZoom < ZOOM_THRESHOLD) {
+            const center = getPolygonCenter(coords);
+            if (!center) return null;
+
+            const polygonPinIcon = iconUrl ? customIcon : createPinIcon(color);
+
+            return (
+              <Marker key={`pin-${feature.id}`} position={center} icon={polygonPinIcon}>
+                <Popup>
+                  <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold", color }}>{feature.title}</h3>
+                  <p style={{ margin: 0, fontSize: "14px" }}>{feature.description}</p>
+                  <small style={{ color: "#64748b", marginTop: "4px", display: "block" }}>🔍 Sınırları görmek için haritada yaklaşın</small>
+                </Popup>
+              </Marker>
+            );
+          }
+
           return (
             <Polygon key={feature.id} positions={coords} pathOptions={{ color, fillColor: color, fillOpacity: 0.4 }}>
               <Popup>
-                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold" }}>{feature.title}</h3>
+                <h3 style={{ margin: "0 0 5px", fontSize: "16px", fontWeight: "bold", color }}>{feature.title}</h3>
                 <p style={{ margin: 0, fontSize: "14px" }}>{feature.description}</p>
               </Popup>
             </Polygon>
